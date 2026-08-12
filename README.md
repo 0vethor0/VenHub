@@ -1,10 +1,6 @@
 # 🚨 VEN911-hub
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 4922ef8c41b79f145f207d0f00e0483da2e142c6
 ![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
