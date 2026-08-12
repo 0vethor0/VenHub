@@ -9,7 +9,8 @@ class PointsProvider extends ChangeNotifier {
   PuntoCamara? _selectedPunto;
   bool _isLoading = false;
   String? _errorMessage;
-  StreamSubscription? _realtimeSubscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _realtimeSubscription;
+  StreamSubscription<AuthState>? _authSubscription;
   final bool enableRealtime;
 
   List<PuntoCamara> get puntos => _puntos;
@@ -20,13 +21,14 @@ class PointsProvider extends ChangeNotifier {
   PointsProvider({this.enableRealtime = true}) {
     fetchPuntos();
     if (enableRealtime) {
-      _subscribeRealtime();
+      _bindRealtimeToAuth();
     }
   }
 
   @override
   void dispose() {
     _realtimeSubscription?.cancel();
+    _authSubscription?.cancel();
     super.dispose();
   }
 
@@ -70,15 +72,37 @@ class PointsProvider extends ChangeNotifier {
     }
   }
 
-  void _subscribeRealtime() {
-    _supabase.from('puntos_camara').stream(primaryKey: ['id']).listen((
-      List<Map<String, dynamic>> data,
-    ) {
-      // Update local points on realtime change
-      if (data.isNotEmpty) {
-        fetchPuntos();
+  void _bindRealtimeToAuth() {
+    void syncSubscription(Session? session) {
+      if (session != null) {
+        _subscribeRealtime();
+      } else {
+        _realtimeSubscription?.cancel();
+        _realtimeSubscription = null;
       }
+    }
+
+    syncSubscription(_supabase.auth.currentSession);
+    _authSubscription = _supabase.auth.onAuthStateChange.listen((data) {
+      syncSubscription(data.session);
     });
+  }
+
+  void _subscribeRealtime() {
+    _realtimeSubscription?.cancel();
+    _realtimeSubscription = _supabase
+        .from('puntos_camara')
+        .stream(primaryKey: ['id'])
+        .listen(
+          (List<Map<String, dynamic>> data) {
+            if (data.isNotEmpty) fetchPuntos();
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            debugPrint('PointsProvider: Realtime error: $error');
+            _realtimeSubscription?.cancel();
+            _realtimeSubscription = null;
+          },
+        );
   }
 
   Future<bool> updatePunto(String puntoId, Map<String, dynamic> updates) async {

@@ -160,7 +160,13 @@ class VersionUpdateProvider with ChangeNotifier {
               _processNewVersion(newRecord);
             },
           );
-      _realtimeChannel!.subscribe();
+      _realtimeChannel!.subscribe((status, [error]) {
+        if (status == RealtimeSubscribeStatus.channelError) {
+          debugPrint(
+            'VersionUpdateProvider: Realtime channel error: $error',
+          );
+        }
+      });
     } catch (e) {
       debugPrint('VersionUpdateProvider: Error subscribing to Realtime: $e');
     }
