@@ -46,7 +46,7 @@ app.*.map.json
 
 # Folders to ignore
 /docs
-/data 
+
 /supabase
 
 # Environment variables

@@ -1,0 +1,54 @@
+# Plan de Acción: Eliminación de la Gestión de Equipos
+
+El objetivo de este cambio es simplificar el modelo de negocio, removiendo la lógica de "Equipos de Trabajo". Cada inspector trabajará de manera individual para gestionar sus reportes y datos.
+
+## User Review Required
+> [!IMPORTANT]
+> Se ejecutarán comandos SQL directamente en la base de datos de Supabase para eliminar la tabla `equipos` y remover las columnas `equipo_id` de las tablas `perfiles` y `reportes`. Esto **eliminará permanentemente** cualquier asignación de equipos existente en la base de datos remota.
+
+## Proposed Changes
+
+### Cambios en Base de Datos (Supabase)
+Se ejecutará el siguiente script de limpieza en el servidor, y se actualizarán los archivos locales de esquema para futuras migraciones:
+- `ALTER TABLE perfiles DROP COLUMN equipo_id;`
+- `ALTER TABLE reportes DROP COLUMN equipo_id;`
+- `DROP TABLE equipos CASCADE;`
+
+#### [MODIFY] [schema.sql](file:///c:/Users/Vincent/Documents/Codigo/VEN911-Hub/supabase/schema.sql)
+#### [MODIFY] [20260812000000_initial_schema.sql](file:///c:/Users/Vincent/Documents/Codigo/VEN911-Hub/supabase/migrations/20260812000000_initial_schema.sql)
+- Remover todo el código relacionado con la creación de la tabla `equipos`.
+- Quitar la columna `equipo_id` de `perfiles` y `reportes`.
+- Quitar las políticas RLS asociadas a `equipos`.
+
+### Cambios en Modelos (Dart)
+#### [MODIFY] [user_profile.dart](file:///c:/Users/Vincent/Documents/Codigo/VEN911-Hub/ven911_app/lib/models/user_profile.dart)
+- Eliminar completamente la clase `Equipo`.
+- Eliminar las propiedades `equipoId` y `equipo` de la clase `Perfil`.
+
+#### [MODIFY] [reporte.dart](file:///c:/Users/Vincent/Documents/Codigo/VEN911-Hub/ven911_app/lib/models/reporte.dart)
+- Eliminar la propiedad `equipoId`.
+
+### Cambios en Proveedores (Lógica de App)
+#### [MODIFY] [auth_provider.dart](file:///c:/Users/Vincent/Documents/Codigo/VEN911-Hub/ven911_app/lib/providers/auth_provider.dart)
+- Eliminar la lista `_equipos`.
+- Remover la función `loadEquipos()` y `updateEquipo()`.
+- Ajustar la consulta SQL en `loadProfile()` (quitar la relación `.select('*, equipos(*)')`).
+
+#### [MODIFY] [reports_provider.dart](file:///c:/Users/Vincent/Documents/Codigo/VEN911-Hub/ven911_app/lib/providers/reports_provider.dart)
+- Remover el pase del argumento `equipoId` al hacer un insert en `crearReporte()`.
+
+### Cambios en UI
+#### [MODIFY] [profile_screen.dart](file:///c:/Users/Vincent/Documents/Codigo/VEN911-Hub/ven911_app/lib/screens/profile/profile_screen.dart)
+- Eliminar la tarjeta (Card) completa de "Asignación de Equipo" y su Dropdown.
+
+#### [MODIFY] [point_form_modal.dart](file:///c:/Users/Vincent/Documents/Codigo/VEN911-Hub/ven911_app/lib/screens/map/widgets/point_form_modal.dart)
+- Remover el argumento `equipoId` al llamar a `reportsProvider.crearReporte()`.
+
+---
+
+## Verification Plan
+### Automated Tests
+- Ejecutar `flutter analyze` para asegurar que no hay variables indefinidas (huérfanas de `equipo`).
+### Manual Verification
+- Iniciar sesión en la app y visualizar el perfil (la opción de asignar equipo no debe existir).
+- Crear una nueva observación en el mapa para confirmar que se registra individualmente sin fallos.
