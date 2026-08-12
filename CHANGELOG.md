@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/0vethor0/VenHub/compare/v1.0.0...v1.1.0) (2026-08-12)
+
+
+### Features
+
+* **refactor:** UI/UX: ([529559c](https://github.com/0vethor0/VenHub/commit/529559c589c3d8bf650d68e7f7a7ac4ac1a8304a))
+
 ## 1.0.0 (2026-08-12)
 
 
