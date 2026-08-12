@@ -38,26 +38,30 @@ void main() {
     );
   });
 
-  testWidgets('Splash screen renders basic text and loader', (WidgetTester tester) async {
+  testWidgets('Splash screen renders basic text and loader', (
+    WidgetTester tester,
+  ) async {
     // Pump the SplashScreen wrapped in the necessary providers.
     // Realtime is disabled in providers to avoid Supabase Realtime errors in tests.
     await tester.pumpWidget(
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => AuthProvider()),
-          ChangeNotifierProvider(create: (_) => PointsProvider(enableRealtime: false)),
+          ChangeNotifierProvider(
+            create: (_) => PointsProvider(enableRealtime: false),
+          ),
           ChangeNotifierProvider(create: (_) => ReportsProvider()),
-          ChangeNotifierProvider(create: (_) => VersionUpdateProvider(enableRealtime: false)),
+          ChangeNotifierProvider(
+            create: (_) => VersionUpdateProvider(enableRealtime: false),
+          ),
         ],
-        child: const MaterialApp(
-          home: SplashScreen(),
-        ),
+        child: const MaterialApp(home: SplashScreen()),
       ),
     );
 
     // Verify that the splash screen title 'VEN 911' is rendered.
     expect(find.text('VEN 911'), findsOneWidget);
-    
+
     // Verify that the subtitle is rendered.
     expect(find.text('Levantamiento de Campo - Yaracuy'), findsOneWidget);
 
