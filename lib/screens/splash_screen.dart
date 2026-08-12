@@ -57,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFF8FAFC),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -65,14 +65,14 @@ class _SplashScreenState extends State<SplashScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                color: const Color(0xFF2563EB).withValues(alpha: 0.1),
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF0284C7), width: 2),
+                border: Border.all(color: const Color(0xFF2563EB), width: 2),
               ),
               child: const Icon(
                 Icons.videocam_outlined,
                 size: 80,
-                color: Color(0xFF0284C7),
+                color: Color(0xFF2563EB),
               ),
             ),
             const SizedBox(height: 24),
@@ -81,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen> {
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w800,
-                color: Colors.white,
+                color: Color(0xFF1E293B),
                 letterSpacing: 2,
               ),
             ),
@@ -90,13 +90,13 @@ class _SplashScreenState extends State<SplashScreen> {
               'Levantamiento de Campo - Yaracuy',
               style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF94A3B8),
+                color: Color(0xFF64748B),
                 letterSpacing: 1,
               ),
             ),
             const SizedBox(height: 48),
             const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0284C7)),
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2563EB)),
             ),
           ],
         ),

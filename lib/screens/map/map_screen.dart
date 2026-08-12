@@ -51,7 +51,7 @@ class _MapScreenState extends State<MapScreen> {
       appBar: AppBar(
         title: const Row(
           children: [
-            Icon(Icons.map, color: Color(0xFF0284C7)),
+            Icon(Icons.map, color: Colors.white),
             SizedBox(width: 8),
             Text('VEN911 - Yaracuy'),
           ],
@@ -137,7 +137,7 @@ class _MapScreenState extends State<MapScreen> {
             left: 16,
             right: 16,
             child: Card(
-              color: const Color(0xFF1E293B).withValues(alpha: 0.95),
+              color: Colors.white.withValues(alpha: 0.95),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -147,12 +147,12 @@ class _MapScreenState extends State<MapScreen> {
                   children: [
                     TextField(
                       onChanged: (val) => setState(() => _searchQuery = val),
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Color(0xFF1E293B)),
                       decoration: const InputDecoration(
                         hintText: 'Buscar punto de cámara...',
                         prefixIcon: Icon(
                           Icons.search,
-                          color: Color(0xFF0284C7),
+                          color: Color(0xFF2563EB),
                         ),
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
@@ -171,7 +171,7 @@ class _MapScreenState extends State<MapScreen> {
                             selected: _filterEnergiaOnly,
                             onSelected: (val) =>
                                 setState(() => _filterEnergiaOnly = val),
-                            selectedColor: const Color(0xFF0284C7),
+                            selectedColor: const Color(0xFF2563EB),
                           ),
                           const SizedBox(width: 8),
                           FilterChip(
@@ -182,7 +182,7 @@ class _MapScreenState extends State<MapScreen> {
                             selected: _filterFibraOnly,
                             onSelected: (val) =>
                                 setState(() => _filterFibraOnly = val),
-                            selectedColor: const Color(0xFF0284C7),
+                            selectedColor: const Color(0xFF2563EB),
                           ),
                           const SizedBox(width: 8),
                           Chip(
@@ -193,7 +193,7 @@ class _MapScreenState extends State<MapScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            backgroundColor: const Color(0xFF334155),
+                            backgroundColor: const Color(0xFFE2E8F0),
                           ),
                         ],
                       ),
@@ -212,8 +212,8 @@ class _MapScreenState extends State<MapScreen> {
               children: [
                 FloatingActionButton.small(
                   heroTag: 'refresh_btn',
-                  backgroundColor: const Color(0xFF1E293B),
-                  child: const Icon(Icons.refresh, color: Colors.white),
+                  backgroundColor: Colors.white,
+                  child: const Icon(Icons.refresh, color: Color(0xFF2563EB)),
                   onPressed: () {
                     pointsProvider.fetchPuntos();
                   },
@@ -221,7 +221,7 @@ class _MapScreenState extends State<MapScreen> {
                 const SizedBox(height: 8),
                 FloatingActionButton(
                   heroTag: 'recenter_btn',
-                  backgroundColor: const Color(0xFF0284C7),
+                  backgroundColor: const Color(0xFF2563EB),
                   child: const Icon(Icons.my_location, color: Colors.white),
                   onPressed: () {
                     _mapController.move(_initialCenter, 13.0);

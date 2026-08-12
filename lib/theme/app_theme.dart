@@ -1,31 +1,32 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Brand Colors
-  static const Color primaryColor = Color(0xFF0F172A); // Slate / Deep Blue
-  static const Color primaryLight = Color(0xFF1E293B);
+  // Brand Colors - WhiteFriends Design System
+  static const Color primaryColor = Color(0xFF2563EB); // Vibrant Blue
+  static const Color primaryLight = Color(0xFF3B82F6);
   static const Color accentColor = Color(0xFFDC2626); // Emergency Red
-  static const Color secondaryColor = Color(0xFF0284C7); // Cyan Blue
+  static const Color secondaryColor = Color(0xFF0EA5E9); // Sky Blue
   static const Color warningColor = Color(0xFFF59E0B); // Amber Yellow
   static const Color successColor = Color(0xFF10B981); // Emerald Green
-  static const Color backgroundColor = Color(0xFF090D16); // Dark background
-  static const Color surfaceColor = Color(0xFF1E293B); // Dark Surface Card
-  static const Color cardColor = Color(0xFF1E293B);
+  static const Color backgroundColor = Color(0xFFF8FAFC); // Light background
+  static const Color surfaceColor = Color(0xFFFFFFFF); // White Surface Card
+  static const Color cardColor = Color(0xFFFFFFFF);
+  static const Color dividerColor = Color(0xFFE2E8F0);
 
   // Text Colors
-  static const Color textPrimary = Color(0xFFF8FAFC);
-  static const Color textSecondary = Color(0xFF94A3B8);
-  static const Color textMuted = Color(0xFF64748B);
+  static const Color textPrimary = Color(0xFF1E293B);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color textMuted = Color(0xFF94A3B8);
 
-  static ThemeData get darkTheme {
+  static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: Brightness.light,
       scaffoldBackgroundColor: backgroundColor,
       primaryColor: primaryColor,
-      colorScheme: const ColorScheme.dark(
-        primary: secondaryColor,
-        secondary: accentColor,
+      colorScheme: const ColorScheme.light(
+        primary: primaryColor,
+        secondary: secondaryColor,
         surface: surfaceColor,
         error: accentColor,
         onPrimary: Colors.white,
@@ -37,24 +38,24 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          color: textPrimary,
+          color: Colors.white,
           fontSize: 18,
           fontWeight: FontWeight.bold,
           letterSpacing: 0.5,
         ),
-        iconTheme: IconThemeData(color: textPrimary),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       cardTheme: CardThemeData(
         color: surfaceColor,
-        elevation: 4,
+        elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Color(0xFF334155), width: 1),
+          side: const BorderSide(color: dividerColor, width: 1),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: secondaryColor,
+          backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           elevation: 2,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -66,22 +67,22 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF0F172A),
+        fillColor: surfaceColor,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF334155)),
+          borderSide: const BorderSide(color: dividerColor),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF334155)),
+          borderSide: const BorderSide(color: dividerColor),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: secondaryColor, width: 2),
+          borderSide: const BorderSide(color: primaryColor, width: 2),
         ),
         labelStyle: const TextStyle(color: textSecondary),
         hintStyle: const TextStyle(color: textMuted),

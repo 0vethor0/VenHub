@@ -27,6 +27,11 @@ class _PointFormModalState extends State<PointFormModal>
   late String? _indiceDelictivo;
   late String? _tipoZona;
   late TextEditingController _notasController;
+  late TextEditingController _contextoEspecificoController;
+  late String? _flujoPeatonal;
+  late String? _flujoVehicular;
+  late TextEditingController _puntosCiegosController;
+  late TextEditingController _observacionesController;
 
   final _reporteObservacionController = TextEditingController();
   File? _selectedImage;
@@ -51,6 +56,17 @@ class _PointFormModalState extends State<PointFormModal>
     _notasController = TextEditingController(
       text: widget.punto.optimizacionSitioNotas ?? '',
     );
+    _contextoEspecificoController = TextEditingController(
+      text: widget.punto.contextoEspecifico ?? '',
+    );
+    _flujoPeatonal = widget.punto.flujoPeatonal;
+    _flujoVehicular = widget.punto.flujoVehicular;
+    _puntosCiegosController = TextEditingController(
+      text: widget.punto.puntosCiegos ?? '',
+    );
+    _observacionesController = TextEditingController(
+      text: widget.punto.observaciones ?? '',
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ReportsProvider>(
@@ -66,6 +82,9 @@ class _PointFormModalState extends State<PointFormModal>
     _alturaPosteController.dispose();
     _distanciaNodoController.dispose();
     _notasController.dispose();
+    _contextoEspecificoController.dispose();
+    _puntosCiegosController.dispose();
+    _observacionesController.dispose();
     _reporteObservacionController.dispose();
     super.dispose();
   }
@@ -97,6 +116,11 @@ class _PointFormModalState extends State<PointFormModal>
       'indice_delictivo': _indiceDelictivo,
       'tipo_zona': _tipoZona,
       'optimizacion_sitio_notas': _notasController.text,
+      'contexto_especifico': _contextoEspecificoController.text,
+      'flujo_peatonal': _flujoPeatonal,
+      'flujo_vehicular': _flujoVehicular,
+      'puntos_ciegos': _puntosCiegosController.text,
+      'observaciones': _observacionesController.text,
     };
 
     final ok = await pointsProvider.updatePunto(widget.punto.id, updates);
@@ -149,7 +173,7 @@ class _PointFormModalState extends State<PointFormModal>
       height: MediaQuery.of(context).size.height * 0.85,
       padding: const EdgeInsets.all(16),
       decoration: const BoxDecoration(
-        color: Color(0xFF1E293B),
+        color: Color(0xFFFFFFFF),
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -160,7 +184,7 @@ class _PointFormModalState extends State<PointFormModal>
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[600],
+                color: Colors.grey[400],
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -168,7 +192,7 @@ class _PointFormModalState extends State<PointFormModal>
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(Icons.videocam, color: Color(0xFF0284C7), size: 28),
+              const Icon(Icons.videocam, color: Color(0xFF2563EB), size: 28),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -176,27 +200,27 @@ class _PointFormModalState extends State<PointFormModal>
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Color(0xFF1E293B),
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close, color: Colors.white70),
+                icon: const Icon(Icons.close, color: Color(0xFF64748B)),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           ),
           Text(
             'Ubicación: ${widget.punto.latitud.toStringAsFixed(5)}, ${widget.punto.longitud.toStringAsFixed(5)} (${widget.punto.estado})',
-            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+            style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
           ),
           const SizedBox(height: 12),
           TabBar(
             controller: _tabController,
-            indicatorColor: const Color(0xFF0284C7),
-            labelColor: Colors.white,
-            unselectedLabelColor: const Color(0xFF94A3B8),
+            indicatorColor: const Color(0xFF2563EB),
+            labelColor: const Color(0xFF2563EB),
+            unselectedLabelColor: const Color(0xFF64748B),
             tabs: const [
               Tab(icon: Icon(Icons.edit_note), text: 'Evaluación Campo'),
               Tab(icon: Icon(Icons.forum), text: 'Foro Reportes'),
@@ -214,12 +238,12 @@ class _PointFormModalState extends State<PointFormModal>
                       SwitchListTile(
                         title: const Text(
                           'Energía Eléctrica disponible',
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: Color(0xFF1E293B)),
                         ),
                         value: _energiaElectrica,
                         onChanged: (val) =>
                             setState(() => _energiaElectrica = val),
-                        activeThumbColor: const Color(0xFF10B981),
+                        activeTrackColor: const Color(0xFF2563EB),
                       ),
                       if (_energiaElectrica)
                         DropdownButtonFormField<String>(
@@ -240,12 +264,12 @@ class _PointFormModalState extends State<PointFormModal>
                       SwitchListTile(
                         title: const Text(
                           'Existencia de Poste',
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: Color(0xFF1E293B)),
                         ),
                         value: _existenciaPoste,
                         onChanged: (val) =>
                             setState(() => _existenciaPoste = val),
-                        activeThumbColor: const Color(0xFF10B981),
+                        activeTrackColor: const Color(0xFF2563EB),
                       ),
                       if (_existenciaPoste)
                         Padding(
@@ -263,11 +287,11 @@ class _PointFormModalState extends State<PointFormModal>
                       SwitchListTile(
                         title: const Text(
                           'Fibra Óptica cercana',
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: Color(0xFF1E293B)),
                         ),
                         value: _fibraOptica,
                         onChanged: (val) => setState(() => _fibraOptica = val),
-                        activeThumbColor: const Color(0xFF10B981),
+                        activeTrackColor: const Color(0xFF2563EB),
                       ),
                       if (_fibraOptica)
                         Padding(
@@ -328,6 +352,60 @@ class _PointFormModalState extends State<PointFormModal>
                               'Detalles adicionales, obstáculos, visibilidad...',
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _contextoEspecificoController,
+                        decoration: const InputDecoration(
+                          labelText: 'Contexto Específico',
+                          hintText:
+                              'Entrada/salida municipio, intersecciones, etc.',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: _flujoPeatonal,
+                        decoration: const InputDecoration(
+                          labelText: 'Flujo Peatonal',
+                        ),
+                        items: ['Alto', 'Medio', 'Bajo']
+                            .map(
+                              (e) => DropdownMenuItem(value: e, child: Text(e)),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => _flujoPeatonal = val),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: _flujoVehicular,
+                        decoration: const InputDecoration(
+                          labelText: 'Flujo Vehicular',
+                        ),
+                        items: ['Alto', 'Medio', 'Bajo']
+                            .map(
+                              (e) => DropdownMenuItem(value: e, child: Text(e)),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => _flujoVehicular = val),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _puntosCiegosController,
+                        decoration: const InputDecoration(
+                          labelText: 'Puntos Ciegos',
+                          hintText: 'Describa puntos ciegos en la ubicación',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _observacionesController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          labelText: 'Observaciones',
+                          hintText: 'Observaciones adicionales...',
+                        ),
+                      ),
                       const SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity,
@@ -354,7 +432,7 @@ class _PointFormModalState extends State<PointFormModal>
                           ? const Center(
                               child: Text(
                                 'No hay reportes registrados para este punto',
-                                style: TextStyle(color: Color(0xFF94A3B8)),
+                                style: TextStyle(color: Color(0xFF64748B)),
                               ),
                             )
                           : ListView.builder(
@@ -369,20 +447,20 @@ class _PointFormModalState extends State<PointFormModal>
                                     title: Text(
                                       rep.observacion,
                                       style: const TextStyle(
-                                        color: Colors.white,
+                                        color: Color(0xFF1E293B),
                                       ),
                                     ),
                                     subtitle: Text(
                                       'Por: ${rep.autorNombre ?? 'Inspector'} • ${rep.creadoEn.day}/${rep.creadoEn.month}/${rep.creadoEn.year} ${rep.creadoEn.hour}:${rep.creadoEn.minute.toString().padLeft(2, '0')}',
                                       style: const TextStyle(
-                                        color: Color(0xFF94A3B8),
+                                        color: Color(0xFF64748B),
                                         fontSize: 12,
                                       ),
                                     ),
                                     trailing: rep.urlEvidenciaFoto != null
                                         ? const Icon(
                                             Icons.image,
-                                            color: Color(0xFF0284C7),
+                                            color: Color(0xFF2563EB),
                                           )
                                         : null,
                                   ),
@@ -390,13 +468,13 @@ class _PointFormModalState extends State<PointFormModal>
                               },
                             ),
                     ),
-                    const Divider(color: Color(0xFF334155)),
+                    const Divider(color: Color(0xFFE2E8F0)),
                     Row(
                       children: [
                         IconButton(
                           icon: const Icon(
                             Icons.camera_alt,
-                            color: Color(0xFF0284C7),
+                            color: Color(0xFF2563EB),
                           ),
                           onPressed: _pickImage,
                         ),
@@ -415,7 +493,7 @@ class _PointFormModalState extends State<PointFormModal>
                         IconButton(
                           icon: const Icon(
                             Icons.send,
-                            color: Color(0xFF0284C7),
+                            color: Color(0xFF2563EB),
                           ),
                           onPressed: _submitReporte,
                         ),

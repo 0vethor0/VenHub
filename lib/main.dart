@@ -46,7 +46,7 @@ class Ven911App extends StatelessWidget {
         navigatorKey: navigatorKey,
         title: 'VEN 911 - Levantamiento de Campo',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
+        theme: AppTheme.lightTheme,
         home: const SplashScreen(),
       ),
     );

@@ -15,6 +15,11 @@ class PuntoCamara {
   final String? indiceDelictivo;
   final String? tipoZona;
   final String? optimizacionSitioNotas;
+  final String? contextoEspecifico;
+  final String? flujoPeatonal;
+  final String? flujoVehicular;
+  final String? puntosCiegos;
+  final String? observaciones;
   final String? actualizadoPor;
   final DateTime? actualizadoEn;
 
@@ -35,6 +40,11 @@ class PuntoCamara {
     this.indiceDelictivo,
     this.tipoZona,
     this.optimizacionSitioNotas,
+    this.contextoEspecifico,
+    this.flujoPeatonal,
+    this.flujoVehicular,
+    this.puntosCiegos,
+    this.observaciones,
     this.actualizadoPor,
     this.actualizadoEn,
   });
@@ -87,6 +97,11 @@ class PuntoCamara {
       indiceDelictivo: map['indice_delictivo'],
       tipoZona: map['tipo_zona'],
       optimizacionSitioNotas: map['optimizacion_sitio_notas'],
+      contextoEspecifico: map['contexto_especifico'],
+      flujoPeatonal: map['flujo_peatonal'],
+      flujoVehicular: map['flujo_vehicular'],
+      puntosCiegos: map['puntos_ciegos'],
+      observaciones: map['observaciones'],
       actualizadoPor: map['actualizado_por'],
       actualizadoEn: map['actualizado_en'] != null
           ? DateTime.tryParse(map['actualizado_en'])
@@ -110,6 +125,11 @@ class PuntoCamara {
       'indice_delictivo': indiceDelictivo,
       'tipo_zona': tipoZona,
       'optimizacion_sitio_notas': optimizacionSitioNotas,
+      'contexto_especifico': contextoEspecifico,
+      'flujo_peatonal': flujoPeatonal,
+      'flujo_vehicular': flujoVehicular,
+      'puntos_ciegos': puntosCiegos,
+      'observaciones': observaciones,
       'actualizado_por': actualizadoPor,
       'actualizado_en': DateTime.now().toIso8601String(),
     };
