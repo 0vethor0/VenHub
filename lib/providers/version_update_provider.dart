@@ -162,9 +162,7 @@ class VersionUpdateProvider with ChangeNotifier {
           );
       _realtimeChannel!.subscribe((status, [error]) {
         if (status == RealtimeSubscribeStatus.channelError) {
-          debugPrint(
-            'VersionUpdateProvider: Realtime channel error: $error',
-          );
+          debugPrint('VersionUpdateProvider: Realtime channel error: $error');
         }
       });
     } catch (e) {
