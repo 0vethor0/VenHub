@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/version_update_provider.dart';
 
@@ -233,8 +235,17 @@ class UpdateDialog extends StatelessWidget {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            onPressed: () =>
-                                provider.downloadAndInstallUpdate(),
+                            onPressed: () async {
+                              await provider.downloadAndInstallUpdate();
+                              // Si la instalación se lanzó, cerrar la app
+                              if (Platform.isAndroid) {
+                                // Opcional: esperar un segundo para que el intent se lance
+                                await Future.delayed(
+                                  const Duration(seconds: 1),
+                                );
+                                SystemNavigator.pop(); // Cierra la app
+                              }
+                            },
                             icon: const Icon(Icons.download_rounded),
                             label: const Text('Actualizar Ahora'),
                           ),

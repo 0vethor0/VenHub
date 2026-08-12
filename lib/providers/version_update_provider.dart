@@ -1,11 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
 import '../main.dart' show navigatorKey;
 import '../screens/update_dialog.dart';
 
@@ -160,20 +164,6 @@ class VersionUpdateProvider with ChangeNotifier {
     }
   }
 
-  /// Request storage permission (only for Android <= 12, as >= 13 handles it differently)
-  Future<bool> _requestStoragePermission() async {
-    if (!Platform.isAndroid) return false;
-
-    // Request permission using permission_handler
-    final status = await Permission.storage.status;
-    if (status.isDenied) {
-      final result = await Permission.storage.request();
-      return result.isGranted;
-    }
-
-    return status.isGranted || status.isLimited;
-  }
-
   /// Download and trigger the installation of the APK
   Future<void> downloadAndInstallUpdate() async {
     if (_downloadUrl.isEmpty) {
@@ -188,72 +178,76 @@ class VersionUpdateProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Storage permission check (we can still try if denied, since cache folder works)
-      await _requestStoragePermission();
-
-      final client = http.Client();
-      final request = http.Request('GET', Uri.parse(_downloadUrl));
-      final response = await client.send(request);
-
-      if (response.statusCode != 200) {
-        throw Exception(
-          'El servidor respondió con código ${response.statusCode}',
-        );
-      }
-
-      final totalLength = response.contentLength ?? 0;
-      int receivedLength = 0;
-
-      final tempDir = await getTemporaryDirectory();
-      final apkPath = '${tempDir.path}/app-update.apk';
-      final file = File(apkPath);
-
-      if (await file.exists()) {
-        await file.delete();
-      }
-
-      final sink = file.openWrite();
-
-      final stream = response.stream;
-      await for (final chunk in stream) {
-        sink.add(chunk);
-        receivedLength += chunk.length;
-        if (totalLength > 0) {
-          _downloadProgress = receivedLength / totalLength;
+      // Solicitar permisos de almacenamiento (solo Android 10-)
+      if (Platform.isAndroid) {
+        final status = await Permission.storage.request();
+        if (!status.isGranted) {
+          _errorMessage = 'Permiso de almacenamiento denegado';
+          _isDownloading = false;
           notifyListeners();
+          return;
         }
       }
 
-      await sink.close();
-      client.close();
+      // Descargar el APK
+      final response = await http.get(Uri.parse(_downloadUrl));
+      if (response.statusCode != 200) {
+        throw Exception('Error descargando el archivo');
+      }
+
+      // Guardar en un directorio accesible (ej. Descargas)
+      final directory = await getExternalStorageDirectory();
+      if (directory == null) {
+        throw Exception('No se puede acceder al almacenamiento externo');
+      }
+      final apkFile = File('${directory.path}/venhub_update.apk');
+      await apkFile.writeAsBytes(response.bodyBytes);
 
       _isDownloading = false;
       _downloadProgress = 1.0;
       notifyListeners();
 
-      // Trigger APK installation
-      await _installApk(apkPath);
+      // Instalar usando android_intent_plus
+      if (Platform.isAndroid) {
+        final intent = AndroidIntent(
+          action: 'action_view',
+          data: apkFile.path,
+          type: 'application/vnd.android.package-archive',
+          flags: <int>[
+            Flag.FLAG_ACTIVITY_NEW_TASK,
+            Flag.FLAG_GRANT_READ_URI_PERMISSION,
+          ],
+        );
+        // Lanzar el intent sin esperar resultado
+        await intent.launch();
+
+        // Mostrar mensaje y cerrar la app (opcional)
+        _showInstallationStarted();
+        // Finalizar la app después de un breve delay
+        Future.delayed(const Duration(seconds: 1), () {
+          // Cerrar la app
+          SystemNavigator.pop();
+        });
+      } else {
+        // Fallback para iOS (no aplica)
+        await OpenFile.open(apkFile.path);
+      }
     } catch (e) {
       _isDownloading = false;
-      _errorMessage = 'Error en descarga/instalación: ${e.toString()}';
+      _errorMessage = 'Error: ${e.toString()}';
       notifyListeners();
-      debugPrint('VersionUpdateProvider: Download/Install error: $e');
+      debugPrint('Error en actualización: $e');
     }
   }
 
-  /// Open APK with OpenFile package
-  Future<void> _installApk(String filePath) async {
-    try {
-      final result = await OpenFile.open(filePath);
-
-      // Handle the result dynamically to be compatible with varying enum capitalizations
-      final resultType = result.type.toString().toLowerCase();
-      if (!resultType.contains('done')) {
-        throw Exception('Error de OpenFile: ${result.message}');
-      }
-    } catch (e) {
-      throw Exception('No se pudo iniciar el instalador de APK: $e');
-    }
+  void _showInstallationStarted() {
+    // Mostrar un toast indicando que la instalación comenzó
+    Fluttertoast.showToast(
+      msg:
+          'Instalación iniciada. Complete el proceso en la pantalla del sistema.',
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM,
+    );
   }
 
   /// Helper to trigger dialog via global navigatorKey
