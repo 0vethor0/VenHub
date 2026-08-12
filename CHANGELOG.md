@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0](https://github.com/0vethor0/VenHub/compare/v1.1.0...v1.2.0) (2026-08-12)
+
+
+### Features
+
+* **actualizaciones:** mejorar flujo de descarga e instalación de APK y permisos ([dcbbe4c](https://github.com/0vethor0/VenHub/commit/dcbbe4cf8b70f814ec0f809b870b3ba1543b46ae))
+
+
+### Bug Fixes
+
+* configure android file intent handling and resolve analysis errors ([99f36af](https://github.com/0vethor0/VenHub/commit/99f36afe869947136429fb613aefba8085254365))
+* **format:** si aplico el formato al archivo especificado ([3eb3d07](https://github.com/0vethor0/VenHub/commit/3eb3d07bf5cbe33aa68365f794bd8e71791c162c))
+* He implementado la solución para el problema de actualización de la app ([2528fc4](https://github.com/0vethor0/VenHub/commit/2528fc400efa42790c7dfadbacead191c2a94902))
+
 ## [1.1.0](https://github.com/0vethor0/VenHub/compare/v1.0.0...v1.1.0) (2026-08-12)
 
 
