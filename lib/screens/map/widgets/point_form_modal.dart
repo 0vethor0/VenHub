@@ -15,7 +15,8 @@ class PointFormModal extends StatefulWidget {
   State<PointFormModal> createState() => _PointFormModalState();
 }
 
-class _PointFormModalState extends State<PointFormModal> with SingleTickerProviderStateMixin {
+class _PointFormModalState extends State<PointFormModal>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late bool _energiaElectrica;
   late String? _nivelTension;
@@ -39,18 +40,23 @@ class _PointFormModalState extends State<PointFormModal> with SingleTickerProvid
     _nivelTension = widget.punto.nivelTension;
     _existenciaPoste = widget.punto.existenciaPoste;
     _alturaPosteController = TextEditingController(
-        text: widget.punto.alturaPosteMetros?.toString() ?? '');
+      text: widget.punto.alturaPosteMetros?.toString() ?? '',
+    );
     _fibraOptica = widget.punto.fibraOptica;
     _distanciaNodoController = TextEditingController(
-        text: widget.punto.distanciaNodoMetros?.toString() ?? '');
+      text: widget.punto.distanciaNodoMetros?.toString() ?? '',
+    );
     _indiceDelictivo = widget.punto.indiceDelictivo;
     _tipoZona = widget.punto.tipoZona;
     _notasController = TextEditingController(
-        text: widget.punto.optimizacionSitioNotas ?? '');
+      text: widget.punto.optimizacionSitioNotas ?? '',
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ReportsProvider>(context, listen: false)
-          .fetchReportesPorPunto(widget.punto.id);
+      Provider.of<ReportsProvider>(
+        context,
+        listen: false,
+      ).fetchReportesPorPunto(widget.punto.id);
     });
   }
 
@@ -66,7 +72,10 @@ class _PointFormModalState extends State<PointFormModal> with SingleTickerProvid
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+    final picked = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+    );
     if (picked != null) {
       setState(() {
         _selectedImage = File(picked.path);
@@ -107,7 +116,10 @@ class _PointFormModalState extends State<PointFormModal> with SingleTickerProvid
   Future<void> _submitReporte() async {
     if (_reporteObservacionController.text.trim().isEmpty) return;
 
-    final reportsProvider = Provider.of<ReportsProvider>(context, listen: false);
+    final reportsProvider = Provider.of<ReportsProvider>(
+      context,
+      listen: false,
+    );
 
     final ok = await reportsProvider.crearReporte(
       puntoId: widget.punto.id,
@@ -200,25 +212,39 @@ class _PointFormModalState extends State<PointFormModal> with SingleTickerProvid
                   child: Column(
                     children: [
                       SwitchListTile(
-                        title: const Text('Energía Eléctrica disponible', style: TextStyle(color: Colors.white)),
+                        title: const Text(
+                          'Energía Eléctrica disponible',
+                          style: TextStyle(color: Colors.white),
+                        ),
                         value: _energiaElectrica,
-                        onChanged: (val) => setState(() => _energiaElectrica = val),
+                        onChanged: (val) =>
+                            setState(() => _energiaElectrica = val),
                         activeThumbColor: const Color(0xFF10B981),
                       ),
                       if (_energiaElectrica)
                         DropdownButtonFormField<String>(
                           initialValue: _nivelTension,
-                          decoration: const InputDecoration(labelText: 'Nivel de Tensión'),
+                          decoration: const InputDecoration(
+                            labelText: 'Nivel de Tensión',
+                          ),
                           items: ['110V', '220V', 'Triphasic', 'OTRO']
-                              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                              .map(
+                                (e) =>
+                                    DropdownMenuItem(value: e, child: Text(e)),
+                              )
                               .toList(),
-                          onChanged: (val) => setState(() => _nivelTension = val),
+                          onChanged: (val) =>
+                              setState(() => _nivelTension = val),
                         ),
                       const SizedBox(height: 12),
                       SwitchListTile(
-                        title: const Text('Existencia de Poste', style: TextStyle(color: Colors.white)),
+                        title: const Text(
+                          'Existencia de Poste',
+                          style: TextStyle(color: Colors.white),
+                        ),
                         value: _existenciaPoste,
-                        onChanged: (val) => setState(() => _existenciaPoste = val),
+                        onChanged: (val) =>
+                            setState(() => _existenciaPoste = val),
                         activeThumbColor: const Color(0xFF10B981),
                       ),
                       if (_existenciaPoste)
@@ -235,7 +261,10 @@ class _PointFormModalState extends State<PointFormModal> with SingleTickerProvid
                         ),
                       const SizedBox(height: 12),
                       SwitchListTile(
-                        title: const Text('Fibra Óptica cercana', style: TextStyle(color: Colors.white)),
+                        title: const Text(
+                          'Fibra Óptica cercana',
+                          style: TextStyle(color: Colors.white),
+                        ),
                         value: _fibraOptica,
                         onChanged: (val) => setState(() => _fibraOptica = val),
                         activeThumbColor: const Color(0xFF10B981),
@@ -255,19 +284,38 @@ class _PointFormModalState extends State<PointFormModal> with SingleTickerProvid
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue: _indiceDelictivo,
-                        decoration: const InputDecoration(labelText: 'Índice Delictivo del Sector'),
+                        decoration: const InputDecoration(
+                          labelText: 'Índice Delictivo del Sector',
+                        ),
                         items: ['BAJO', 'MEDIO', 'ALTO', 'CRÍTICO']
-                            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                            .map(
+                              (e) => DropdownMenuItem(value: e, child: Text(e)),
+                            )
                             .toList(),
-                        onChanged: (val) => setState(() => _indiceDelictivo = val),
+                        onChanged: (val) =>
+                            setState(() => _indiceDelictivo = val),
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue: _tipoZona,
-                        decoration: const InputDecoration(labelText: 'Tipo de Zona'),
-                        items: ['COMERCIAL', 'RESIDENCIAL', 'INDUSTRIAL', 'VIALIDAD PRINCIPAL', 'RURAL']
-                            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                            .toList(),
+                        decoration: const InputDecoration(
+                          labelText: 'Tipo de Zona',
+                        ),
+                        items:
+                            [
+                                  'COMERCIAL',
+                                  'RESIDENCIAL',
+                                  'INDUSTRIAL',
+                                  'VIALIDAD PRINCIPAL',
+                                  'RURAL',
+                                ]
+                                .map(
+                                  (e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text(e),
+                                  ),
+                                )
+                                .toList(),
                         onChanged: (val) => setState(() => _tipoZona = val),
                       ),
                       const SizedBox(height: 12),
@@ -276,7 +324,8 @@ class _PointFormModalState extends State<PointFormModal> with SingleTickerProvid
                         maxLines: 3,
                         decoration: const InputDecoration(
                           labelText: 'Notas de Optimización del Sitio',
-                          hintText: 'Detalles adicionales, obstáculos, visibilidad...',
+                          hintText:
+                              'Detalles adicionales, obstáculos, visibilidad...',
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -285,7 +334,9 @@ class _PointFormModalState extends State<PointFormModal> with SingleTickerProvid
                         child: ElevatedButton(
                           onPressed: _isSaving ? null : _saveChanges,
                           child: _isSaving
-                              ? const CircularProgressIndicator(color: Colors.white)
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
                               : const Text('Guardar Evaluación'),
                         ),
                       ),
@@ -300,43 +351,53 @@ class _PointFormModalState extends State<PointFormModal> with SingleTickerProvid
                       child: reportsProvider.isLoading
                           ? const Center(child: CircularProgressIndicator())
                           : reportsProvider.reportes.isEmpty
-                              ? const Center(
-                                  child: Text(
-                                    'No hay reportes registrados para este punto',
-                                    style: TextStyle(color: Color(0xFF94A3B8)),
+                          ? const Center(
+                              child: Text(
+                                'No hay reportes registrados para este punto',
+                                style: TextStyle(color: Color(0xFF94A3B8)),
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: reportsProvider.reportes.length,
+                              itemBuilder: (ctx, i) {
+                                final rep = reportsProvider.reportes[i];
+                                return Card(
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 6,
                                   ),
-                                )
-                              : ListView.builder(
-                                  itemCount: reportsProvider.reportes.length,
-                                  itemBuilder: (ctx, i) {
-                                    final rep = reportsProvider.reportes[i];
-                                    return Card(
-                                      margin: const EdgeInsets.symmetric(vertical: 6),
-                                      child: ListTile(
-                                        title: Text(
-                                          rep.observacion,
-                                          style: const TextStyle(color: Colors.white),
-                                        ),
-                                        subtitle: Text(
-                                          'Por: ${rep.autorNombre ?? 'Inspector'} • ${rep.creadoEn.day}/${rep.creadoEn.month}/${rep.creadoEn.year} ${rep.creadoEn.hour}:${rep.creadoEn.minute.toString().padLeft(2, '0')}',
-                                          style: const TextStyle(
-                                            color: Color(0xFF94A3B8),
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        trailing: rep.urlEvidenciaFoto != null
-                                            ? const Icon(Icons.image, color: Color(0xFF0284C7))
-                                            : null,
+                                  child: ListTile(
+                                    title: Text(
+                                      rep.observacion,
+                                      style: const TextStyle(
+                                        color: Colors.white,
                                       ),
-                                    );
-                                  },
-                                ),
+                                    ),
+                                    subtitle: Text(
+                                      'Por: ${rep.autorNombre ?? 'Inspector'} • ${rep.creadoEn.day}/${rep.creadoEn.month}/${rep.creadoEn.year} ${rep.creadoEn.hour}:${rep.creadoEn.minute.toString().padLeft(2, '0')}',
+                                      style: const TextStyle(
+                                        color: Color(0xFF94A3B8),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    trailing: rep.urlEvidenciaFoto != null
+                                        ? const Icon(
+                                            Icons.image,
+                                            color: Color(0xFF0284C7),
+                                          )
+                                        : null,
+                                  ),
+                                );
+                              },
+                            ),
                     ),
                     const Divider(color: Color(0xFF334155)),
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.camera_alt, color: Color(0xFF0284C7)),
+                          icon: const Icon(
+                            Icons.camera_alt,
+                            color: Color(0xFF0284C7),
+                          ),
                           onPressed: _pickImage,
                         ),
                         Expanded(
@@ -344,12 +405,18 @@ class _PointFormModalState extends State<PointFormModal> with SingleTickerProvid
                             controller: _reporteObservacionController,
                             decoration: const InputDecoration(
                               hintText: 'Escribir observación/reporte...',
-                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
                             ),
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.send, color: Color(0xFF0284C7)),
+                          icon: const Icon(
+                            Icons.send,
+                            color: Color(0xFF0284C7),
+                          ),
                           onPressed: _submitReporte,
                         ),
                       ],
@@ -359,14 +426,31 @@ class _PointFormModalState extends State<PointFormModal> with SingleTickerProvid
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Row(
                           children: [
-                            const Icon(Icons.check_circle, color: Colors.green, size: 16),
+                            const Icon(
+                              Icons.check_circle,
+                              color: Colors.green,
+                              size: 16,
+                            ),
                             const SizedBox(width: 4),
-                            const Text('Foto capturada', style: TextStyle(color: Colors.green, fontSize: 12)),
+                            const Text(
+                              'Foto capturada',
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontSize: 12,
+                              ),
+                            ),
                             const Spacer(),
                             GestureDetector(
-                              onTap: () => setState(() => _selectedImage = null),
-                              child: const Text('Eliminar', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
-                            )
+                              onTap: () =>
+                                  setState(() => _selectedImage = null),
+                              child: const Text(
+                                'Eliminar',
+                                style: TextStyle(
+                                  color: Colors.redAccent,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),

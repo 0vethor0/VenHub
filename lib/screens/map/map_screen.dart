@@ -39,7 +39,8 @@ class _MapScreenState extends State<MapScreen> {
 
     // Apply local filters
     final filteredPuntos = pointsProvider.puntos.where((p) {
-      final matchesSearch = _searchQuery.isEmpty ||
+      final matchesSearch =
+          _searchQuery.isEmpty ||
           p.nombre.toLowerCase().contains(_searchQuery.toLowerCase());
       final matchesEnergia = !_filterEnergiaOnly || p.energiaElectrica;
       final matchesFibra = !_filterFibraOnly || p.fibraOptica;
@@ -60,18 +61,18 @@ class _MapScreenState extends State<MapScreen> {
             icon: const Icon(Icons.forum_outlined),
             tooltip: 'Foro de Reportes',
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ReportsScreen()),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const ReportsScreen()));
             },
           ),
           IconButton(
             icon: const Icon(Icons.person_outline),
             tooltip: 'Perfil',
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
             },
           ),
         ],
@@ -138,7 +139,10 @@ class _MapScreenState extends State<MapScreen> {
             child: Card(
               color: const Color(0xFF1E293B).withValues(alpha: 0.95),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 child: Column(
                   children: [
                     TextField(
@@ -146,7 +150,10 @@ class _MapScreenState extends State<MapScreen> {
                       style: const TextStyle(color: Colors.white),
                       decoration: const InputDecoration(
                         hintText: 'Buscar punto de cámara...',
-                        prefixIcon: Icon(Icons.search, color: Color(0xFF0284C7)),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: Color(0xFF0284C7),
+                        ),
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
@@ -157,23 +164,34 @@ class _MapScreenState extends State<MapScreen> {
                       child: Row(
                         children: [
                           FilterChip(
-                            label: const Text('Con Energía', style: TextStyle(fontSize: 12)),
+                            label: const Text(
+                              'Con Energía',
+                              style: TextStyle(fontSize: 12),
+                            ),
                             selected: _filterEnergiaOnly,
-                            onSelected: (val) => setState(() => _filterEnergiaOnly = val),
+                            onSelected: (val) =>
+                                setState(() => _filterEnergiaOnly = val),
                             selectedColor: const Color(0xFF0284C7),
                           ),
                           const SizedBox(width: 8),
                           FilterChip(
-                            label: const Text('Con Fibra Óptica', style: TextStyle(fontSize: 12)),
+                            label: const Text(
+                              'Con Fibra Óptica',
+                              style: TextStyle(fontSize: 12),
+                            ),
                             selected: _filterFibraOnly,
-                            onSelected: (val) => setState(() => _filterFibraOnly = val),
+                            onSelected: (val) =>
+                                setState(() => _filterFibraOnly = val),
                             selectedColor: const Color(0xFF0284C7),
                           ),
                           const SizedBox(width: 8),
                           Chip(
                             label: Text(
                               'Puntos: ${filteredPuntos.length}',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             backgroundColor: const Color(0xFF334155),
                           ),

@@ -12,9 +12,7 @@ class ProfileScreen extends StatelessWidget {
     final profile = auth.profile;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Perfil del Inspector'),
-      ),
+      appBar: AppBar(title: const Text('Perfil del Inspector')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -36,10 +34,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               profile?.email ?? auth.user?.email ?? '',
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF94A3B8),
-              ),
+              style: const TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
             ),
             const SizedBox(height: 24),
             SizedBox(

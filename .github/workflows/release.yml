@@ -108,13 +108,13 @@ jobs:
       - name: Renombrar APK con el nombre de la versión
         run: |
           mv build/app/outputs/flutter-apk/app-release.apk \
-             build/app/outputs/flutter-apk/beamflow-${{ github.event.release.tag_name }}.apk
+             build/app/outputs/flutter-apk/venhub-${{ github.event.release.tag_name }}.apk
 
       - name: Adjuntar APK al GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.release.tag_name }}
-          files: build/app/outputs/flutter-apk/beamflow-${{ github.event.release.tag_name }}.apk
+          files: build/app/outputs/flutter-apk/venhub-${{ github.event.release.tag_name }}.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -124,7 +124,7 @@ jobs:
         run: |
           # Obtener la URL de descarga del APK recién subido
           # El formato de GitHub es predecible para assets de releases
-          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/beamflow-${{ github.event.release.tag_name }}.apk"
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/venhub-${{ github.event.release.tag_name }}.apk"
           
           curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/versiones_app" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \

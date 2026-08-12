@@ -51,7 +51,10 @@ class AuthProvider extends ChangeNotifier {
         await _supabase.from('perfiles').insert({
           'id': _user!.id,
           'email': _user!.email ?? '',
-          'nombre': _user!.userMetadata?['nombre'] ?? _user!.email?.split('@').first ?? 'Usuario',
+          'nombre':
+              _user!.userMetadata?['nombre'] ??
+              _user!.email?.split('@').first ??
+              'Usuario',
         });
         await loadProfile();
         return;
@@ -119,4 +122,3 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-

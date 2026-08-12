@@ -60,3 +60,7 @@ app.*.map.json
 # Git
 .DS_Store
 *.log
+
+# keystore
+my-release-key.keystore
+keystore.base64.txt

@@ -60,8 +60,14 @@ class PuntoCamara {
         }
       }
     } else {
-      lat = (map['latitud'] as num?)?.toDouble() ?? (map['lat'] as num?)?.toDouble() ?? 0.0;
-      lon = (map['longitud'] as num?)?.toDouble() ?? (map['lon'] as num?)?.toDouble() ?? 0.0;
+      lat =
+          (map['latitud'] as num?)?.toDouble() ??
+          (map['lat'] as num?)?.toDouble() ??
+          0.0;
+      lon =
+          (map['longitud'] as num?)?.toDouble() ??
+          (map['lon'] as num?)?.toDouble() ??
+          0.0;
     }
 
     return PuntoCamara(
@@ -82,7 +88,9 @@ class PuntoCamara {
       tipoZona: map['tipo_zona'],
       optimizacionSitioNotas: map['optimizacion_sitio_notas'],
       actualizadoPor: map['actualizado_por'],
-      actualizadoEn: map['actualizado_en'] != null ? DateTime.tryParse(map['actualizado_en']) : null,
+      actualizadoEn: map['actualizado_en'] != null
+          ? DateTime.tryParse(map['actualizado_en'])
+          : null,
     );
   }
 

@@ -3,11 +3,7 @@ class Perfil {
   final String email;
   final String nombre;
 
-  Perfil({
-    required this.id,
-    required this.email,
-    required this.nombre,
-  });
+  Perfil({required this.id, required this.email, required this.nombre});
 
   factory Perfil.fromMap(Map<String, dynamic> map) {
     return Perfil(
@@ -18,11 +14,6 @@ class Perfil {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'email': email,
-      'nombre': nombre,
-    };
+    return {'id': id, 'email': email, 'nombre': nombre};
   }
 }
-

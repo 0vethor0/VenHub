@@ -73,4 +73,3 @@ class ReportsProvider extends ChangeNotifier {
     }
   }
 }
-

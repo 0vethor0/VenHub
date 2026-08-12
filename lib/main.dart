@@ -5,8 +5,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'providers/auth_provider.dart';
 import 'providers/points_provider.dart';
 import 'providers/reports_provider.dart';
+import 'providers/version_update_provider.dart';
 import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,13 +21,11 @@ void main() async {
     debugPrint("Advertencia: No se pudo cargar .env como asset");
   }
 
-  final supabaseUrl = dotenv.env['SUPABASE_URL'] ?? 'https://juktboqlmcnydepwlnpy.supabase.co';
+  final supabaseUrl =
+      dotenv.env['SUPABASE_URL'] ?? 'https://juktboqlmcnydepwlnpy.supabase.co';
   final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 
-  await Supabase.initialize(
-    url: supabaseUrl,
-    publishableKey: supabaseAnonKey,
-  );
+  await Supabase.initialize(url: supabaseUrl, publishableKey: supabaseAnonKey);
 
   runApp(const Ven911App());
 }
@@ -39,8 +40,10 @@ class Ven911App extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => PointsProvider()),
         ChangeNotifierProvider(create: (_) => ReportsProvider()),
+        ChangeNotifierProvider(create: (_) => VersionUpdateProvider()..init()),
       ],
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         title: 'VEN 911 - Levantamiento de Campo',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme,

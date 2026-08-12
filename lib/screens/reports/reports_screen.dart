@@ -11,9 +11,7 @@ class ReportsScreen extends StatelessWidget {
     final pointsProvider = Provider.of<PointsProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Foro General de Puntos'),
-      ),
+      appBar: AppBar(title: const Text('Foro General de Puntos')),
       body: pointsProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
@@ -28,17 +26,30 @@ class ReportsScreen extends StatelessWidget {
                       backgroundColor: punto.energiaElectrica
                           ? const Color(0xFF10B981)
                           : const Color(0xFFDC2626),
-                      child: const Icon(Icons.videocam, color: Colors.white, size: 20),
+                      child: const Icon(
+                        Icons.videocam,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                     title: Text(
                       punto.nombre,
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                     subtitle: Text(
                       'Energía: ${punto.energiaElectrica ? "SI" : "NO"} • Fibra: ${punto.fibraOptica ? "SI" : "NO"} • Poste: ${punto.existenciaPoste ? "SI" : "NO"}',
-                      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                      style: const TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 12,
+                      ),
                     ),
-                    trailing: const Icon(Icons.chevron_right, color: Colors.white54),
+                    trailing: const Icon(
+                      Icons.chevron_right,
+                      color: Colors.white54,
+                    ),
                     onTap: () {
                       showModalBottomSheet(
                         context: context,

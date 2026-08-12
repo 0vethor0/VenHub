@@ -39,13 +39,17 @@ class PointsProvider extends ChangeNotifier {
 
     try {
       // Execute query to select points with PostGIS ST_AsGeoJSON
-      final res = await _supabase.rpc('get_puntos_camara_geojson').catchError((_) async {
+      final res = await _supabase.rpc('get_puntos_camara_geojson').catchError((
+        _,
+      ) async {
         // Fallback to normal select if RPC isn't deployed yet
         return await _supabase.from('puntos_camara').select('*');
       });
 
       if (res is List) {
-        _puntos = res.map((item) => PuntoCamara.fromMap(item as Map<String, dynamic>)).toList();
+        _puntos = res
+            .map((item) => PuntoCamara.fromMap(item as Map<String, dynamic>))
+            .toList();
       }
     } catch (e) {
       // Try direct select fallback
@@ -64,10 +68,9 @@ class PointsProvider extends ChangeNotifier {
   }
 
   void _subscribeRealtime() {
-    _supabase
-        .from('puntos_camara')
-        .stream(primaryKey: ['id'])
-        .listen((List<Map<String, dynamic>> data) {
+    _supabase.from('puntos_camara').stream(primaryKey: ['id']).listen((
+      List<Map<String, dynamic>> data,
+    ) {
       // Update local points on realtime change
       if (data.isNotEmpty) {
         fetchPuntos();

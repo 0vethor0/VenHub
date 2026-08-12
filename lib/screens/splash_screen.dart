@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/version_update_provider.dart';
 import 'auth/login_screen.dart';
 import 'map/map_screen.dart';
 
@@ -19,17 +20,37 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkAuth() async {
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 1));
     if (!mounted) return;
+
+    final updateProvider = Provider.of<VersionUpdateProvider>(
+      context,
+      listen: false,
+    );
+    await updateProvider.checkForUpdates();
+
+    if (!mounted) return;
+
+    if (updateProvider.updateAvailable && updateProvider.isRequired) {
+      updateProvider.showUpdateDialog();
+      return;
+    }
+
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    if (auth.isAuthenticated) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MapScreen()),
-      );
-    } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
+    Widget nextScreen = auth.isAuthenticated
+        ? const MapScreen()
+        : const LoginScreen();
+
+    if (mounted) {
+      await Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => nextScreen));
+    }
+
+    if (updateProvider.updateAvailable && !updateProvider.isRequired) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        updateProvider.showUpdateDialog();
+      });
     }
   }
 

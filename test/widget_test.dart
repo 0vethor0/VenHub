@@ -1,30 +1,70 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:ven911_app/providers/auth_provider.dart';
+import 'package:ven911_app/providers/points_provider.dart';
+import 'package:ven911_app/providers/reports_provider.dart';
+import 'package:ven911_app/providers/version_update_provider.dart';
+import 'package:ven911_app/screens/splash_screen.dart';
 
-import 'package:ven911_app/main.dart';
+class MockGotrueAsyncStorage extends GotrueAsyncStorage {
+  final Map<String, String> _storage = {};
+
+  @override
+  Future<String?> getItem({required String key}) async => _storage[key];
+
+  @override
+  Future<void> setItem({required String key, required String value}) async {
+    _storage[key] = value;
+  }
+
+  @override
+  Future<void> removeItem({required String key}) async {
+    _storage.remove(key);
+  }
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const Ven911App());
+  setUpAll(() async {
+    // Initialize Supabase with dummy credentials and custom memory-based storages to prevent plugin channel errors in tests
+    await Supabase.initialize(
+      url: 'https://juktboqlmcnydepwlnpy.supabase.co',
+      anonKey: 'dummy-key',
+      authOptions: FlutterAuthClientOptions(
+        localStorage: const EmptyLocalStorage(),
+        pkceAsyncStorage: MockGotrueAsyncStorage(),
+      ),
+    );
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  testWidgets('Splash screen renders basic text and loader', (WidgetTester tester) async {
+    // Pump the SplashScreen wrapped in the necessary providers.
+    // Note that VersionUpdateProvider's init() is not called here to avoid Supabase Realtime errors in tests.
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider(create: (_) => PointsProvider()),
+          ChangeNotifierProvider(create: (_) => ReportsProvider()),
+          ChangeNotifierProvider(create: (_) => VersionUpdateProvider()),
+        ],
+        child: const MaterialApp(
+          home: SplashScreen(),
+        ),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Verify that the splash screen title 'VEN 911' is rendered.
+    expect(find.text('VEN 911'), findsOneWidget);
+    
+    // Verify that the subtitle is rendered.
+    expect(find.text('Levantamiento de Campo - Yaracuy'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that the circular progress loader is present.
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    // Drain the pending timer from Future.delayed inside SplashScreen._checkAuth
+    await tester.pump(const Duration(seconds: 2));
   });
 }

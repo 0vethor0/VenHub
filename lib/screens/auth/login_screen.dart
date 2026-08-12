@@ -25,9 +25,9 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (success && mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MapScreen()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const MapScreen()));
     } else if (mounted && auth.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -83,7 +83,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelText: 'Correo Electrónico',
                         prefixIcon: Icon(Icons.email_outlined),
                       ),
-                      validator: (value) => value == null || value.isEmpty ? 'Ingrese su correo' : null,
+                      validator: (value) => value == null || value.isEmpty
+                          ? 'Ingrese su correo'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -93,7 +95,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelText: 'Contraseña',
                         prefixIcon: Icon(Icons.lock_outline),
                       ),
-                      validator: (value) => value == null || value.isEmpty ? 'Ingrese su contraseña' : null,
+                      validator: (value) => value == null || value.isEmpty
+                          ? 'Ingrese su contraseña'
+                          : null,
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
@@ -102,7 +106,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
                           : const Text('Ingresar'),
                     ),
@@ -110,7 +117,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const RegisterScreen(),
+                          ),
                         );
                       },
                       child: const Text('¿No tienes cuenta? Regístrate aquí'),
