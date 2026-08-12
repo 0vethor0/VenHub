@@ -30,7 +30,7 @@ void main() {
     // Initialize Supabase with dummy credentials and custom memory-based storages to prevent plugin channel errors in tests
     await Supabase.initialize(
       url: 'https://juktboqlmcnydepwlnpy.supabase.co',
-      anonKey: 'dummy-key',
+      publishableKey: 'dummy-key',
       authOptions: FlutterAuthClientOptions(
         localStorage: const EmptyLocalStorage(),
         pkceAsyncStorage: MockGotrueAsyncStorage(),
@@ -40,14 +40,14 @@ void main() {
 
   testWidgets('Splash screen renders basic text and loader', (WidgetTester tester) async {
     // Pump the SplashScreen wrapped in the necessary providers.
-    // Note that VersionUpdateProvider's init() is not called here to avoid Supabase Realtime errors in tests.
+    // Realtime is disabled in providers to avoid Supabase Realtime errors in tests.
     await tester.pumpWidget(
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => AuthProvider()),
-          ChangeNotifierProvider(create: (_) => PointsProvider()),
+          ChangeNotifierProvider(create: (_) => PointsProvider(enableRealtime: false)),
           ChangeNotifierProvider(create: (_) => ReportsProvider()),
-          ChangeNotifierProvider(create: (_) => VersionUpdateProvider()),
+          ChangeNotifierProvider(create: (_) => VersionUpdateProvider(enableRealtime: false)),
         ],
         child: const MaterialApp(
           home: SplashScreen(),

@@ -23,6 +23,7 @@ class VersionUpdateProvider with ChangeNotifier {
   RealtimeChannel? _realtimeChannel;
   int _currentVersionCode = 0;
   String _currentVersionName = '';
+  final bool enableRealtime;
 
   // Getters
   bool get updateAvailable => _updateAvailable;
@@ -35,6 +36,8 @@ class VersionUpdateProvider with ChangeNotifier {
   bool get isDialogShowing => _isDialogShowing;
   String get currentVersionName => _currentVersionName;
 
+  VersionUpdateProvider({this.enableRealtime = true});
+
   set isDialogShowing(bool val) {
     _isDialogShowing = val;
     notifyListeners();
@@ -44,7 +47,9 @@ class VersionUpdateProvider with ChangeNotifier {
   Future<void> init() async {
     await _getCurrentVersion();
     await checkForUpdates();
-    _subscribeToRealtime();
+    if (enableRealtime) {
+      _subscribeToRealtime();
+    }
   }
 
   /// Fetch local app version information

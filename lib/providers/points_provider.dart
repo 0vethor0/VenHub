@@ -10,15 +10,18 @@ class PointsProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   StreamSubscription? _realtimeSubscription;
+  final bool enableRealtime;
 
   List<PuntoCamara> get puntos => _puntos;
   PuntoCamara? get selectedPunto => _selectedPunto;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  PointsProvider() {
+  PointsProvider({this.enableRealtime = true}) {
     fetchPuntos();
-    _subscribeRealtime();
+    if (enableRealtime) {
+      _subscribeRealtime();
+    }
   }
 
   @override
