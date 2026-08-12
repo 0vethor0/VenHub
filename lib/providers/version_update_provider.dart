@@ -14,6 +14,8 @@ import '../main.dart' show navigatorKey;
 import '../screens/update_dialog.dart';
 
 class VersionUpdateProvider with ChangeNotifier {
+  static const _installChannel = MethodChannel('com.ven911.ven911_app/install');
+
   bool _updateAvailable = false;
   String _latestVersion = '';
   String _downloadUrl = '';
@@ -178,24 +180,25 @@ class VersionUpdateProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Solicitar permisos de almacenamiento (solo Android 10-)
       if (Platform.isAndroid) {
-        final status = await Permission.storage.request();
-        if (!status.isGranted) {
+        final installStatus = await Permission.requestInstallPackages.request();
+        if (!installStatus.isGranted) {
+          _errorMessage = 'Permiso de instalación denegado';
+          return;
+        }
+
+        final storageStatus = await Permission.storage.request();
+        if (!storageStatus.isGranted) {
           _errorMessage = 'Permiso de almacenamiento denegado';
-          _isDownloading = false;
-          notifyListeners();
           return;
         }
       }
 
-      // Descargar el APK
       final response = await http.get(Uri.parse(_downloadUrl));
       if (response.statusCode != 200) {
         throw Exception('Error descargando el archivo');
       }
 
-      // Guardar en un directorio accesible (ej. Descargas)
       final directory = await getExternalStorageDirectory();
       if (directory == null) {
         throw Exception('No se puede acceder al almacenamiento externo');
@@ -203,40 +206,39 @@ class VersionUpdateProvider with ChangeNotifier {
       final apkFile = File('${directory.path}/venhub_update.apk');
       await apkFile.writeAsBytes(response.bodyBytes);
 
-      _isDownloading = false;
       _downloadProgress = 1.0;
       notifyListeners();
 
-      // Instalar usando android_intent_plus
       if (Platform.isAndroid) {
+        final uri = await _installChannel.invokeMethod<String>('getApkUri', {
+          'path': apkFile.path,
+        });
+        if (uri == null || uri.isEmpty) {
+          throw Exception('No se pudo preparar el APK para instalación');
+        }
+
         final intent = AndroidIntent(
           action: 'action_view',
-          data: apkFile.path,
+          data: uri,
           type: 'application/vnd.android.package-archive',
           flags: <int>[
             Flag.FLAG_ACTIVITY_NEW_TASK,
             Flag.FLAG_GRANT_READ_URI_PERMISSION,
           ],
         );
-        // Lanzar el intent sin esperar resultado
         await intent.launch();
 
-        // Mostrar mensaje y cerrar la app (opcional)
         _showInstallationStarted();
-        // Finalizar la app después de un breve delay
-        Future.delayed(const Duration(seconds: 1), () {
-          // Cerrar la app
-          SystemNavigator.pop();
-        });
+        Future.delayed(const Duration(seconds: 1), SystemNavigator.pop);
       } else {
-        // Fallback para iOS (no aplica)
         await OpenFile.open(apkFile.path);
       }
     } catch (e) {
-      _isDownloading = false;
       _errorMessage = 'Error: ${e.toString()}';
-      notifyListeners();
       debugPrint('Error en actualización: $e');
+    } finally {
+      _isDownloading = false;
+      notifyListeners();
     }
   }
 

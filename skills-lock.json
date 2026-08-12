@@ -7,6 +7,12 @@
       "skillPath": "skills/caveman/SKILL.md",
       "computedHash": "59e1fe0d3eeb4189ee5c467efde567672e5cacb41f157c477a6152ca907d44ea"
     },
+    "flutter-apply-architecture-best-practices": {
+      "source": "flutter/agent-plugins",
+      "sourceType": "github",
+      "skillPath": "skills/flutter-apply-architecture-best-practices/SKILL.md",
+      "computedHash": "baeb208b1cab90c559677626dbd101b96ba93f803cbed85122abdadeb3283a8b"
+    },
     "ponytail": {
       "source": "dietrichgebert/ponytail",
       "sourceType": "github",
