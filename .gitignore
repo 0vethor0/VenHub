@@ -64,3 +64,5 @@ app.*.map.json
 # keystore
 my-release-key.keystore
 keystore.base64.txt
+client_secret_675577883053-64h91774p9rf9glv296sv3h49959o49p.apps.googleusercontent.com.json
+client_secret_611258875001-hb4ft1tcll956u1qvg3rt125136q5hf9.apps.googleusercontent.com.json

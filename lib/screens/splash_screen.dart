@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/version_update_provider.dart';
 import 'auth/login_screen.dart';
+import 'auth/update_password_screen.dart';
 import 'map/map_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -37,9 +38,15 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    Widget nextScreen = auth.isAuthenticated
-        ? const MapScreen()
-        : const LoginScreen();
+
+    final Widget nextScreen;
+    if (auth.pendingPasswordUpdate) {
+      nextScreen = const UpdatePasswordScreen();
+    } else if (auth.isAuthenticated) {
+      nextScreen = const MapScreen();
+    } else {
+      nextScreen = const LoginScreen();
+    }
 
     if (mounted) {
       await Navigator.of(
