@@ -50,21 +50,42 @@ class _Ven911AppState extends State<Ven911App> {
     _linkSubscription = _appLinks.uriLinkStream.listen(_handleDeepLink);
   }
 
-  void _handleDeepLink(Uri uri) {
+  void _handleDeepLink(Uri uri) async {
     final url = uri.toString();
-    if (!url.contains('reset-callback')) return;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final context = navigatorKey.currentContext;
-      if (context == null) return;
+    // Caso 1: Recuperación de contraseña (ya existente)
+    if (url.contains('reset-callback')) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final context = navigatorKey.currentContext;
+        if (context == null) return;
 
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-      auth.handleResetPasswordRedirect(url);
+        final auth = Provider.of<AuthProvider>(context, listen: false);
+        auth.handleResetPasswordRedirect(url);
 
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => const UpdatePasswordScreen()));
-    });
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const UpdatePasswordScreen()));
+      });
+      return;
+    }
+
+    // Caso 2: Login con Google (nuevo)
+    if (url.contains('login-callback')) {
+      try {
+        // recoverSession extrae los tokens de la URL y los guarda en Supabase
+        final response = await Supabase.instance.client.auth.recoverSession(
+          url,
+        );
+        if (response.session != null) {
+          debugPrint(
+            '✅ Sesión de Google restaurada: ${response.session?.user.email}',
+          );
+          // No es necesario navegar aquí; AuthProvider reaccionará al evento SIGNED_IN
+        }
+      } catch (e) {
+        debugPrint('❌ Error al restaurar sesión de Google: $e');
+      }
+    }
   }
 
   @override
