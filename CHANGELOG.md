@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/0vethor0/VenHub/compare/v1.3.1...v1.3.2) (2026-08-13)
+
+
+### Bug Fixes
+
+* **auto-update:** Se ha modificado lib/providers/version_update_provider.dart para utilizar getApplicationSupportDirectory() en lugar de getApplicationDocumentsDirectory(), garantizando que el APK se guarde en la ruta interna /data/data/.../files/, la cual está correctamente configurada bajo &lt;files-path&gt; en file_paths.xml. ([ad14c94](https://github.com/0vethor0/VenHub/commit/ad14c94f4bdfe664cc2ee54ea28ee7f42d6e55d3))
+
 ## [1.3.1](https://github.com/0vethor0/VenHub/compare/v1.3.0...v1.3.1) (2026-08-13)
 
 
