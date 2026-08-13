@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../models/punto_camara.dart';
 import '../../../providers/points_provider.dart';
 import '../../../providers/reports_provider.dart';
+import '../../../theme/app_theme.dart';
 
 class PointFormModal extends StatefulWidget {
   final PuntoCamara punto;
@@ -130,7 +131,7 @@ class _PointFormModalState extends State<PointFormModal>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Punto de cámara actualizado con éxito'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppTheme.successGreen,
         ),
       );
       Navigator.of(context).pop();
@@ -159,7 +160,7 @@ class _PointFormModalState extends State<PointFormModal>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Observación registrada en el foro'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppTheme.successGreen,
         ),
       );
     }
@@ -173,7 +174,7 @@ class _PointFormModalState extends State<PointFormModal>
       height: MediaQuery.of(context).size.height * 0.85,
       padding: const EdgeInsets.all(16),
       decoration: const BoxDecoration(
-        color: Color(0xFFFFFFFF),
+        color: AppTheme.cardWhite,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -192,7 +193,7 @@ class _PointFormModalState extends State<PointFormModal>
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(Icons.videocam, color: Color(0xFF2563EB), size: 28),
+              const Icon(Icons.videocam, color: AppTheme.primaryBlue, size: 28),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -200,27 +201,27 @@ class _PointFormModalState extends State<PointFormModal>
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: AppTheme.textDark,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close, color: Color(0xFF64748B)),
+                icon: const Icon(Icons.close, color: AppTheme.textMuted),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           ),
           Text(
             'Ubicación: ${widget.punto.latitud.toStringAsFixed(5)}, ${widget.punto.longitud.toStringAsFixed(5)} (${widget.punto.estado})',
-            style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
+            style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
           ),
           const SizedBox(height: 12),
           TabBar(
             controller: _tabController,
-            indicatorColor: const Color(0xFF2563EB),
-            labelColor: const Color(0xFF2563EB),
-            unselectedLabelColor: const Color(0xFF64748B),
+            indicatorColor: AppTheme.primaryBlue,
+            labelColor: AppTheme.primaryBlue,
+            unselectedLabelColor: AppTheme.textMuted,
             tabs: const [
               Tab(icon: Icon(Icons.edit_note), text: 'Evaluación Campo'),
               Tab(icon: Icon(Icons.forum), text: 'Foro Reportes'),
@@ -238,12 +239,12 @@ class _PointFormModalState extends State<PointFormModal>
                       SwitchListTile(
                         title: const Text(
                           'Energía Eléctrica disponible',
-                          style: TextStyle(color: Color(0xFF1E293B)),
+                          style: TextStyle(color: AppTheme.textDark),
                         ),
                         value: _energiaElectrica,
                         onChanged: (val) =>
                             setState(() => _energiaElectrica = val),
-                        activeTrackColor: const Color(0xFF2563EB),
+                        activeTrackColor: AppTheme.primaryBlue,
                       ),
                       if (_energiaElectrica)
                         DropdownButtonFormField<String>(
@@ -264,12 +265,12 @@ class _PointFormModalState extends State<PointFormModal>
                       SwitchListTile(
                         title: const Text(
                           'Existencia de Poste',
-                          style: TextStyle(color: Color(0xFF1E293B)),
+                          style: TextStyle(color: AppTheme.textDark),
                         ),
                         value: _existenciaPoste,
                         onChanged: (val) =>
                             setState(() => _existenciaPoste = val),
-                        activeTrackColor: const Color(0xFF2563EB),
+                        activeTrackColor: AppTheme.primaryBlue,
                       ),
                       if (_existenciaPoste)
                         Padding(
@@ -287,11 +288,11 @@ class _PointFormModalState extends State<PointFormModal>
                       SwitchListTile(
                         title: const Text(
                           'Fibra Óptica cercana',
-                          style: TextStyle(color: Color(0xFF1E293B)),
+                          style: TextStyle(color: AppTheme.textDark),
                         ),
                         value: _fibraOptica,
                         onChanged: (val) => setState(() => _fibraOptica = val),
-                        activeTrackColor: const Color(0xFF2563EB),
+                        activeTrackColor: AppTheme.primaryBlue,
                       ),
                       if (_fibraOptica)
                         Padding(
@@ -432,7 +433,7 @@ class _PointFormModalState extends State<PointFormModal>
                           ? const Center(
                               child: Text(
                                 'No hay reportes registrados para este punto',
-                                style: TextStyle(color: Color(0xFF64748B)),
+                                style: TextStyle(color: AppTheme.textMuted),
                               ),
                             )
                           : ListView.builder(
@@ -447,20 +448,20 @@ class _PointFormModalState extends State<PointFormModal>
                                     title: Text(
                                       rep.observacion,
                                       style: const TextStyle(
-                                        color: Color(0xFF1E293B),
+                                        color: AppTheme.textDark,
                                       ),
                                     ),
                                     subtitle: Text(
                                       'Por: ${rep.autorNombre ?? 'Inspector'} • ${rep.creadoEn.day}/${rep.creadoEn.month}/${rep.creadoEn.year} ${rep.creadoEn.hour}:${rep.creadoEn.minute.toString().padLeft(2, '0')}',
                                       style: const TextStyle(
-                                        color: Color(0xFF64748B),
+                                        color: AppTheme.textMuted,
                                         fontSize: 12,
                                       ),
                                     ),
                                     trailing: rep.urlEvidenciaFoto != null
                                         ? const Icon(
                                             Icons.image,
-                                            color: Color(0xFF2563EB),
+                                            color: AppTheme.primaryBlue,
                                           )
                                         : null,
                                   ),
@@ -468,13 +469,13 @@ class _PointFormModalState extends State<PointFormModal>
                               },
                             ),
                     ),
-                    const Divider(color: Color(0xFFE2E8F0)),
+                    const Divider(color: AppTheme.borderLight),
                     Row(
                       children: [
                         IconButton(
                           icon: const Icon(
                             Icons.camera_alt,
-                            color: Color(0xFF2563EB),
+                            color: AppTheme.primaryBlue,
                           ),
                           onPressed: _pickImage,
                         ),
@@ -493,7 +494,7 @@ class _PointFormModalState extends State<PointFormModal>
                         IconButton(
                           icon: const Icon(
                             Icons.send,
-                            color: Color(0xFF2563EB),
+                            color: AppTheme.primaryBlue,
                           ),
                           onPressed: _submitReporte,
                         ),
@@ -506,14 +507,14 @@ class _PointFormModalState extends State<PointFormModal>
                           children: [
                             const Icon(
                               Icons.check_circle,
-                              color: Colors.green,
+                              color: AppTheme.successGreen,
                               size: 16,
                             ),
                             const SizedBox(width: 4),
                             const Text(
                               'Foto capturada',
                               style: TextStyle(
-                                color: Colors.green,
+                                color: AppTheme.successGreen,
                                 fontSize: 12,
                               ),
                             ),
@@ -524,7 +525,7 @@ class _PointFormModalState extends State<PointFormModal>
                               child: const Text(
                                 'Eliminar',
                                 style: TextStyle(
-                                  color: Colors.redAccent,
+                                  color: AppTheme.dangerRed,
                                   fontSize: 12,
                                 ),
                               ),

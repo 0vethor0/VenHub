@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../map/map_screen.dart';
+import '../../theme/app_theme.dart';
+import '../home/home_screen.dart';
 import 'register_screen.dart';
 import 'reset_password_screen.dart';
 import 'update_password_screen.dart';
@@ -40,18 +41,16 @@ class _LoginScreenState extends State<LoginScreen> {
   void _onAuthChanged() {
     if (!mounted) return;
     final auth = Provider.of<AuthProvider>(context, listen: false);
-
     if (auth.pendingPasswordUpdate) {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => const UpdatePasswordScreen()));
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const UpdatePasswordScreen()),
+      );
       return;
     }
-
     if (auth.isAuthenticated) {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const MapScreen()));
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
     }
   }
 
@@ -64,14 +63,14 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (success && mounted) {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const MapScreen()));
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
     } else if (mounted && auth.friendlyErrorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(auth.friendlyErrorMessage!),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppTheme.dangerRed,
         ),
       );
     }
@@ -80,14 +79,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleGoogleLogin() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final launched = await auth.loginWithGoogle();
-
     if (!mounted) return;
-
     if (!launched && auth.friendlyErrorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(auth.friendlyErrorMessage!),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppTheme.dangerRed,
         ),
       );
     }
@@ -96,150 +93,155 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
-
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Center(
-            child: SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Icon(
-                      Icons.security,
-                      size: 64,
-                      color: Color(0xFF0284C7),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Iniciar Sesión',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+    return Theme(
+      data: AppTheme.darkTheme,
+      child: Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Center(
+              child: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Icon(
+                        Icons.security,
+                        size: 64,
+                        color: AppTheme.primaryBlue,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Acceso para personal de levantamiento VEN911',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Color(0xFF94A3B8)),
-                    ),
-                    const SizedBox(height: 32),
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Correo Electrónico',
-                        prefixIcon: Icon(Icons.email_outlined),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Iniciar Sesión',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Ingrese su correo';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Ingrese un correo válido';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Contraseña',
-                        prefixIcon: Icon(Icons.lock_outline),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Acceso para personal de levantamiento VEN911',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white60),
                       ),
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Ingrese su contraseña'
-                          : null,
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
+                      const SizedBox(height: 32),
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          labelText: 'Correo Electrónico',
+                          prefixIcon: Icon(Icons.email_outlined),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Ingrese su correo';
+                          }
+                          if (!value.contains('@')) {
+                            return 'Ingrese un correo válido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Contraseña',
+                          prefixIcon: Icon(Icons.lock_outline),
+                        ),
+                        validator: (value) => value == null || value.isEmpty
+                            ? 'Ingrese su contraseña'
+                            : null,
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const ResetPasswordScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            '¿Olvidaste tu contraseña?',
+                            style: TextStyle(color: Colors.white60),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: auth.isLoading ? null : _handleLogin,
+                        child: auth.isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text('Ingresar'),
+                      ),
+                      const SizedBox(height: 16),
+                      const Row(
+                        children: [
+                          Expanded(child: Divider(color: Colors.white24)),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              'o',
+                              style: TextStyle(color: Colors.white60),
+                            ),
+                          ),
+                          Expanded(child: Divider(color: Colors.white24)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      OutlinedButton.icon(
+                        onPressed: auth.isLoading ? null : _handleGoogleLogin,
+                        icon: auth.isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.g_mobiledata,
+                                size: 28,
+                                color: Colors.white,
+                              ),
+                        label: const Text('Continuar con Google'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: AppTheme.primaryBlue),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextButton(
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => const ResetPasswordScreen(),
+                              builder: (_) => const RegisterScreen(),
                             ),
                           );
                         },
                         child: const Text(
-                          '¿Olvidaste tu contraseña?',
-                          style: TextStyle(color: Color(0xFF94A3B8)),
+                          '¿No tienes cuenta? Regístrate aquí',
+                          style: TextStyle(color: Colors.white60),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: auth.isLoading ? null : _handleLogin,
-                      child: auth.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text('Ingresar'),
-                    ),
-                    const SizedBox(height: 16),
-                    const Row(
-                      children: [
-                        Expanded(child: Divider(color: Color(0xFF334155))),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
-                            'o',
-                            style: TextStyle(color: Color(0xFF94A3B8)),
-                          ),
-                        ),
-                        Expanded(child: Divider(color: Color(0xFF334155))),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    OutlinedButton.icon(
-                      onPressed: auth.isLoading ? null : _handleGoogleLogin,
-                      icon: auth.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(
-                              Icons.g_mobiledata,
-                              size: 28,
-                              color: Colors.white,
-                            ),
-                      label: const Text('Continuar con Google'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Color(0xFF2563EB)),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const RegisterScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text('¿No tienes cuenta? Regístrate aquí'),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

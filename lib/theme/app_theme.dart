@@ -1,98 +1,183 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Brand Colors - WhiteFriends Design System
-  static const Color primaryColor = Color(0xFF2563EB); // Vibrant Blue
-  static const Color primaryLight = Color(0xFF3B82F6);
-  static const Color accentColor = Color(0xFFDC2626); // Emergency Red
-  static const Color secondaryColor = Color(0xFF0EA5E9); // Sky Blue
-  static const Color warningColor = Color(0xFFF59E0B); // Amber Yellow
-  static const Color successColor = Color(0xFF10B981); // Emerald Green
-  static const Color backgroundColor = Color(0xFFF8FAFC); // Light background
-  static const Color surfaceColor = Color(0xFFFFFFFF); // White Surface Card
-  static const Color cardColor = Color(0xFFFFFFFF);
-  static const Color dividerColor = Color(0xFFE2E8F0);
+  static const Color primaryDark = Color(0xFF0F172A);
+  static const Color primaryBlue = Color(0xFF2563EB);
+  static const Color dangerRed = Color(0xFFDC2626);
+  static const Color successGreen = Color(0xFF10B981);
+  static const Color warningYellow = Color(0xFFF59E0B);
 
-  // Text Colors
-  static const Color textPrimary = Color(0xFF1E293B);
-  static const Color textSecondary = Color(0xFF64748B);
-  static const Color textMuted = Color(0xFF94A3B8);
+  static const Color bgLight = Color(0xFFF8FAFC);
+  static const Color cardWhite = Color(0xFFFFFFFF);
+  static const Color textDark = Color(0xFF1E293B);
+  static const Color textMuted = Color(0xFF64748B);
+  static const Color borderLight = Color(0xFFE2E8F0);
+  static const Color textLight = Color(0xFFFFFFFF);
 
-  static ThemeData get lightTheme {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: backgroundColor,
-      primaryColor: primaryColor,
-      colorScheme: const ColorScheme.light(
-        primary: primaryColor,
-        secondary: secondaryColor,
-        surface: surfaceColor,
-        error: accentColor,
-        onPrimary: Colors.white,
-        onSecondary: Colors.white,
-        onSurface: textPrimary,
-      ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: primaryColor,
-        elevation: 0,
-        centerTitle: true,
-        titleTextStyle: TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 0.5,
+  // Aliases for existing references
+  static const Color primaryColor = primaryBlue;
+  static const Color accentColor = dangerRed;
+  static const Color successColor = successGreen;
+  static const Color warningColor = warningYellow;
+  static const Color backgroundColor = bgLight;
+  static const Color surfaceColor = cardWhite;
+  static const Color dividerColor = borderLight;
+  static const Color textPrimary = textDark;
+  static const Color textSecondary = textMuted;
+
+  static ThemeData get lightTheme => ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.light,
+        primaryColor: primaryBlue,
+        scaffoldBackgroundColor: bgLight,
+        colorScheme: const ColorScheme.light(
+          primary: primaryBlue,
+          secondary: primaryBlue,
+          surface: cardWhite,
+          error: dangerRed,
+          onPrimary: Colors.white,
+          onSecondary: Colors.white,
+          onSurface: textDark,
         ),
-        iconTheme: IconThemeData(color: Colors.white),
-      ),
-      cardTheme: CardThemeData(
-        color: surfaceColor,
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: dividerColor, width: 1),
-        ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
-          elevation: 2,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: primaryDark,
+          elevation: 0,
+          centerTitle: true,
+          titleTextStyle: TextStyle(
+            color: textLight,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          iconTheme: IconThemeData(color: textLight),
         ),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: surfaceColor,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+        cardTheme: CardThemeData(
+          color: cardWhite,
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: borderLight, width: 1),
+          ),
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: dividerColor),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryBlue,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: dividerColor),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: cardWhite,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: borderLight),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: borderLight),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: primaryBlue, width: 2),
+          ),
+          labelStyle: const TextStyle(color: textMuted),
+          hintStyle: const TextStyle(color: textMuted),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: primaryColor, width: 2),
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          backgroundColor: primaryDark,
+          selectedItemColor: primaryBlue,
+          unselectedItemColor: Colors.white54,
+          selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          unselectedLabelStyle: TextStyle(fontSize: 12),
+          type: BottomNavigationBarType.fixed,
         ),
-        labelStyle: const TextStyle(color: textSecondary),
-        hintStyle: const TextStyle(color: textMuted),
-      ),
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: surfaceColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        bottomSheetTheme: const BottomSheetThemeData(
+          backgroundColor: cardWhite,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
         ),
-      ),
-    );
-  }
+      );
+
+  static ThemeData get darkTheme => ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        primaryColor: primaryDark,
+        scaffoldBackgroundColor: primaryDark,
+        colorScheme: const ColorScheme.dark(
+          primary: primaryDark,
+          secondary: primaryBlue,
+          surface: Color(0xFF1E293B),
+          error: dangerRed,
+          onPrimary: textLight,
+          onSecondary: textLight,
+          onSurface: textLight,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: primaryDark,
+          elevation: 0,
+          centerTitle: true,
+          titleTextStyle: TextStyle(
+            color: textLight,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+          iconTheme: IconThemeData(color: textLight),
+        ),
+        cardTheme: CardThemeData(
+          color: const Color(0xFF1E293B),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Colors.white24, width: 1),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryBlue,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFF1E293B),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.white24),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.white24),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: primaryBlue, width: 2),
+          ),
+          labelStyle: const TextStyle(color: Colors.white60),
+          hintStyle: const TextStyle(color: Colors.white38),
+        ),
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          backgroundColor: primaryDark,
+          selectedItemColor: primaryBlue,
+          unselectedItemColor: Colors.white54,
+          selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          unselectedLabelStyle: TextStyle(fontSize: 12),
+          type: BottomNavigationBarType.fixed,
+        ),
+      );
 }

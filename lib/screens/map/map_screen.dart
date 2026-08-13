@@ -4,8 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../../models/punto_camara.dart';
 import '../../providers/points_provider.dart';
-import '../profile/profile_screen.dart';
-import '../reports/reports_screen.dart';
+import '../../theme/app_theme.dart';
 import 'widgets/point_form_modal.dart';
 
 class MapScreen extends StatefulWidget {
@@ -21,23 +20,21 @@ class _MapScreenState extends State<MapScreen> {
   bool _filterEnergiaOnly = false;
   bool _filterFibraOnly = false;
 
-  // Center of Yaracuy (San Felipe)
   final LatLng _initialCenter = const LatLng(10.339, -68.735);
 
   Color _getMarkerColor(PuntoCamara punto) {
     if (punto.energiaElectrica && punto.fibraOptica) {
-      return const Color(0xFF10B981); // Emerald Green
+      return AppTheme.successGreen;
     } else if (punto.energiaElectrica || punto.fibraOptica) {
-      return const Color(0xFFF59E0B); // Amber
+      return AppTheme.warningYellow;
     }
-    return const Color(0xFFDC2626); // Red
+    return AppTheme.dangerRed;
   }
 
   @override
   Widget build(BuildContext context) {
     final pointsProvider = Provider.of<PointsProvider>(context);
 
-    // Apply local filters
     final filteredPuntos = pointsProvider.puntos.where((p) {
       final matchesSearch =
           _searchQuery.isEmpty ||
@@ -49,33 +46,8 @@ class _MapScreenState extends State<MapScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
-          children: [
-            Icon(Icons.map, color: Colors.white),
-            SizedBox(width: 8),
-            Text('VEN911 - Yaracuy'),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.forum_outlined),
-            tooltip: 'Foro de Reportes',
-            onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const ReportsScreen()));
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            tooltip: 'Perfil',
-            onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
-            },
-          ),
-        ],
+        title: const Text('Mapa - Yaracuy'),
+        automaticallyImplyLeading: false,
       ),
       body: Stack(
         children: [
@@ -130,8 +102,6 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ],
           ),
-
-          // TOP SEARCH & FILTER BAR OVERLAY
           Positioned(
             top: 16,
             left: 16,
@@ -139,21 +109,15 @@ class _MapScreenState extends State<MapScreen> {
             child: Card(
               color: Colors.white.withValues(alpha: 0.95),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 child: Column(
                   children: [
                     TextField(
                       onChanged: (val) => setState(() => _searchQuery = val),
-                      style: const TextStyle(color: Color(0xFF1E293B)),
+                      style: const TextStyle(color: AppTheme.textDark),
                       decoration: const InputDecoration(
                         hintText: 'Buscar punto de cámara...',
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: Color(0xFF2563EB),
-                        ),
+                        prefixIcon: Icon(Icons.search, color: AppTheme.primaryBlue),
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
@@ -164,36 +128,25 @@ class _MapScreenState extends State<MapScreen> {
                       child: Row(
                         children: [
                           FilterChip(
-                            label: const Text(
-                              'Con Energía',
-                              style: TextStyle(fontSize: 12),
-                            ),
+                            label: const Text('Con Energía', style: TextStyle(fontSize: 12)),
                             selected: _filterEnergiaOnly,
-                            onSelected: (val) =>
-                                setState(() => _filterEnergiaOnly = val),
-                            selectedColor: const Color(0xFF2563EB),
+                            onSelected: (val) => setState(() => _filterEnergiaOnly = val),
+                            selectedColor: AppTheme.primaryBlue,
                           ),
                           const SizedBox(width: 8),
                           FilterChip(
-                            label: const Text(
-                              'Con Fibra Óptica',
-                              style: TextStyle(fontSize: 12),
-                            ),
+                            label: const Text('Con Fibra Óptica', style: TextStyle(fontSize: 12)),
                             selected: _filterFibraOnly,
-                            onSelected: (val) =>
-                                setState(() => _filterFibraOnly = val),
-                            selectedColor: const Color(0xFF2563EB),
+                            onSelected: (val) => setState(() => _filterFibraOnly = val),
+                            selectedColor: AppTheme.primaryBlue,
                           ),
                           const SizedBox(width: 8),
                           Chip(
                             label: Text(
                               'Puntos: ${filteredPuntos.length}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                             ),
-                            backgroundColor: const Color(0xFFE2E8F0),
+                            backgroundColor: AppTheme.borderLight,
                           ),
                         ],
                       ),
@@ -203,8 +156,6 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
           ),
-
-          // REFRESH / CENTER FAB BUTTONS
           Positioned(
             bottom: 24,
             right: 16,
@@ -213,19 +164,15 @@ class _MapScreenState extends State<MapScreen> {
                 FloatingActionButton.small(
                   heroTag: 'refresh_btn',
                   backgroundColor: Colors.white,
-                  child: const Icon(Icons.refresh, color: Color(0xFF2563EB)),
-                  onPressed: () {
-                    pointsProvider.fetchPuntos();
-                  },
+                  child: const Icon(Icons.refresh, color: AppTheme.primaryBlue),
+                  onPressed: () => pointsProvider.fetchPuntos(),
                 ),
                 const SizedBox(height: 8),
                 FloatingActionButton(
                   heroTag: 'recenter_btn',
-                  backgroundColor: const Color(0xFF2563EB),
+                  backgroundColor: AppTheme.primaryBlue,
                   child: const Icon(Icons.my_location, color: Colors.white),
-                  onPressed: () {
-                    _mapController.move(_initialCenter, 13.0);
-                  },
+                  onPressed: () => _mapController.move(_initialCenter, 13.0),
                 ),
               ],
             ),

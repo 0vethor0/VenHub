@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/version_update_provider.dart';
+import '../theme/app_theme.dart';
 import 'auth/login_screen.dart';
 import 'auth/update_password_screen.dart';
-import 'map/map_screen.dart';
+import 'home/home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -43,15 +44,15 @@ class _SplashScreenState extends State<SplashScreen> {
     if (auth.pendingPasswordUpdate) {
       nextScreen = const UpdatePasswordScreen();
     } else if (auth.isAuthenticated) {
-      nextScreen = const MapScreen();
+      nextScreen = const HomeScreen();
     } else {
       nextScreen = const LoginScreen();
     }
 
     if (mounted) {
-      await Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => nextScreen));
+      await Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => nextScreen),
+      );
     }
 
     if (updateProvider.updateAvailable && !updateProvider.isRequired) {
@@ -64,46 +65,57 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.primaryDark,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF2563EB), width: 2),
-              ),
-              child: const Icon(
-                Icons.videocam_outlined,
-                size: 80,
-                color: Color(0xFF2563EB),
-              ),
+            Image.asset(
+              'assets/icon.png',
+              width: 120,
+              height: 120,
+              fit: BoxFit.contain,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             const Text(
-              'VEN 911',
+              '911',
               style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1E293B),
+                fontSize: 48,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
                 letterSpacing: 2,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 32),
             const Text(
-              'Levantamiento de Campo - Yaracuy',
+              'Cargando datos del sitio...',
               style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF64748B),
+                color: Colors.white60,
                 letterSpacing: 1,
               ),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 4),
+            const Text(
+              'Validando cobertura y red...',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white60,
+                letterSpacing: 1,
+              ),
+            ),
+            const SizedBox(height: 40),
+            const Text(
+              'INSTALACIÓN Y SEGURIDAD V2.4',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white38,
+                letterSpacing: 1.5,
+              ),
+            ),
+            const SizedBox(height: 40),
             const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2563EB)),
+              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryBlue),
             ),
           ],
         ),

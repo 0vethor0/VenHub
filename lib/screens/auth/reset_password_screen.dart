@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../theme/app_theme.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -28,7 +29,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(auth.friendlyErrorMessage!),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppTheme.dangerRed,
         ),
       );
     }
@@ -44,81 +45,84 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Recuperar Contraseña')),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(
-                    Icons.lock_reset,
-                    size: 64,
-                    color: Color(0xFF0284C7),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    '¿Olvidaste tu contraseña?',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+    return Theme(
+      data: AppTheme.darkTheme,
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Recuperar Contraseña')),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Icon(
+                      Icons.lock_reset,
+                      size: 64,
+                      color: AppTheme.primaryBlue,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _emailSent
-                        ? 'Revisa tu correo electrónico. Te enviamos un enlace para restablecer tu contraseña.'
-                        : 'Ingresa tu correo y te enviaremos un enlace de recuperación.',
-                    style: const TextStyle(color: Color(0xFF94A3B8)),
-                  ),
-                  if (!_emailSent) ...[
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Correo Electrónico',
-                        prefixIcon: Icon(Icons.email_outlined),
+                    const SizedBox(height: 16),
+                    const Text(
+                      '¿Olvidaste tu contraseña?',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Ingrese su correo';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Ingrese un correo válido';
-                        }
-                        return null;
-                      },
                     ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: auth.isLoading ? null : _handleReset,
-                      child: auth.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text('Enviar enlace de recuperación'),
+                    const SizedBox(height: 8),
+                    Text(
+                      _emailSent
+                          ? 'Revisa tu correo electrónico. Te enviamos un enlace para restablecer tu contraseña.'
+                          : 'Ingresa tu correo y te enviaremos un enlace de recuperación.',
+                      style: const TextStyle(color: Colors.white60),
+                    ),
+                    if (!_emailSent) ...[
+                      const SizedBox(height: 24),
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          labelText: 'Correo Electrónico',
+                          prefixIcon: Icon(Icons.email_outlined),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Ingrese su correo';
+                          }
+                          if (!value.contains('@')) {
+                            return 'Ingrese un correo válido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: auth.isLoading ? null : _handleReset,
+                        child: auth.isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text('Enviar enlace de recuperación'),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(
+                        _emailSent ? 'Volver al inicio de sesión' : 'Cancelar',
+                        style: const TextStyle(color: Colors.white60),
+                      ),
                     ),
                   ],
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(
-                      _emailSent ? 'Volver al inicio de sesión' : 'Cancelar',
-                      style: const TextStyle(color: Color(0xFF94A3B8)),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
