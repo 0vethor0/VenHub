@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.0](https://github.com/0vethor0/VenHub/compare/v1.3.2...v1.4.0) (2026-08-13)
+
+
+### Features
+
+* **GUI:** reafactorizacion de toda la interces, siguiendo el wireframes ui kit ([fa5b6a8](https://github.com/0vethor0/VenHub/commit/fa5b6a8b5e66bbe8997dfb50141ea403900a7ddd))
+
+
+### Bug Fixes
+
+* **format:** add format ([38e63b6](https://github.com/0vethor0/VenHub/commit/38e63b6ebe228eb9fd360a19cd6ceff13931eac4))
+* solucion en tests unitarios ([7ac46fb](https://github.com/0vethor0/VenHub/commit/7ac46fb1db1dad825ad82c5a043fef4373bc37af))
+
 ## [1.3.2](https://github.com/0vethor0/VenHub/compare/v1.3.1...v1.3.2) (2026-08-13)
 
 
