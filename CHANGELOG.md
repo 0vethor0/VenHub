@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/0vethor0/VenHub/compare/v1.2.0...v1.3.0) (2026-08-13)
+
+
+### Features
+
+* **UI/UX:** autenticación completa con Google OAuth y recuperación de contraseña ([f441cf4](https://github.com/0vethor0/VenHub/commit/f441cf4d2589454d92a4e7eccac34d0c15847264))
+
 ## [1.2.0](https://github.com/0vethor0/VenHub/compare/v1.1.0...v1.2.0) (2026-08-12)
 
 
