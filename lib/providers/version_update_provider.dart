@@ -274,7 +274,6 @@ class VersionUpdateProvider with ChangeNotifier {
           await intent.launch();
 
           _showInstallationStarted();
-          Future.delayed(const Duration(seconds: 1), SystemNavigator.pop);
         } else {
           await OpenFile.open(apkFile.path);
         }
