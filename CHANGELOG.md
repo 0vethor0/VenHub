@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/0vethor0/VenHub/compare/v1.3.0...v1.3.1) (2026-08-13)
+
+
+### Bug Fixes
+
+* **actualizaciones:** optimizar flujo de descarga, permisos y manejo de errores de APK ([a520e54](https://github.com/0vethor0/VenHub/commit/a520e543d72e28424c2ee5d86c4fc7c4307b17d1))
+
 ## [1.3.0](https://github.com/0vethor0/VenHub/compare/v1.2.0...v1.3.0) (2026-08-13)
 
 
