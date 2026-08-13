@@ -225,7 +225,7 @@ class VersionUpdateProvider with ChangeNotifier {
           );
         }
 
-        final directory = await getApplicationDocumentsDirectory();
+        final directory = await getApplicationSupportDirectory();
         final apkFile = File('${directory.path}/venhub_update.apk');
         final sink = apkFile.openWrite();
         var received = 0;
