@@ -12,6 +12,8 @@ class UpdateDialog extends StatelessWidget {
         final bool isRequired = provider.isRequired;
         final bool isDownloading = provider.isDownloading;
         final String? errorMsg = provider.errorMessage;
+        final bool isSignatureConflict = provider.isSignatureConflict;
+        final int? apkSize = provider.apkSizeBytes;
 
         return PopScope(
           canPop: !isRequired,
@@ -36,7 +38,6 @@ class UpdateDialog extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Icon Header with glowing badge
                   Stack(
                     alignment: Alignment.center,
                     children: [
@@ -131,9 +132,18 @@ class UpdateDialog extends StatelessWidget {
                       ),
                     ),
                   ],
+                  if (apkSize != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Tamaño: ${VersionUpdateProvider.formatBytes(apkSize)}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
 
-                  // Content depends on download state
                   if (isDownloading) ...[
                     const Text(
                       'Descargando actualización...',
@@ -143,7 +153,9 @@ class UpdateDialog extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: LinearProgressIndicator(
-                        value: provider.downloadProgress,
+                        value: provider.downloadProgress > 0
+                            ? provider.downloadProgress
+                            : null,
                         minHeight: 8,
                         backgroundColor: const Color(0xFF0F172A),
                         valueColor: AlwaysStoppedAnimation<Color>(
@@ -155,7 +167,9 @@ class UpdateDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${(provider.downloadProgress * 100).toStringAsFixed(0)}%',
+                      provider.downloadProgress > 0
+                          ? '${(provider.downloadProgress * 100).toStringAsFixed(0)}%'
+                          : 'Preparando...',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -172,16 +186,46 @@ class UpdateDialog extends StatelessWidget {
                           color: const Color(0xFFDC2626).withValues(alpha: 0.3),
                         ),
                       ),
-                      child: Text(
-                        errorMsg,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Color(0xFFF87171),
-                          fontSize: 13,
-                        ),
+                      child: Column(
+                        children: [
+                          Text(
+                            errorMsg,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color(0xFFF87171),
+                              fontSize: 13,
+                            ),
+                          ),
+                          if (isSignatureConflict) ...[
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Ve a Ajustes → Aplicaciones → VenHub → Desinstalar, '
+                              'luego instala la versión de release.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                     const SizedBox(height: 20),
+                    if (isSignatureConflict) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: provider.openAppSettingsForUninstall,
+                          icon: const Icon(Icons.settings_rounded),
+                          label: const Text('Abrir configuración'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0284C7),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                     Row(
                       children: [
                         if (!isRequired) ...[
@@ -217,6 +261,30 @@ class UpdateDialog extends StatelessWidget {
                       ],
                     ),
                   ] else ...[
+                    if (provider.isDebugBuild) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(
+                              0xFFF59E0B,
+                            ).withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: const Text(
+                          'Estás en versión de desarrollo. Si la instalación falla, '
+                          'desinstala esta app e instala la versión release.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xFFFBBF24),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
                     Text(
                       isRequired
                           ? 'Esta actualización es obligatoria para seguir utilizando la aplicación de forma segura.'

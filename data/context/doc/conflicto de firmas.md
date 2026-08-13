@@ -82,20 +82,6 @@ CODIGO=$(( MAJOR * 10000 + MINOR * 100 + PATCH ))
 
 #### 3.2. Publicar el APK de release también como `app-release.apk` (sin renombrar) para facilitar pruebas manuales
 
----
-
-### Fase 4: Pruebas
-
-1. **Prueba con versión release instalada**:
-   - Instala manualmente el APK de release (desde GitHub Releases) en el dispositivo.
-   - Luego simula una nueva versión (sube un nuevo release).
-   - Verifica que la actualización se instale correctamente.
-
-2. **Prueba de downgrade**:
-   - Intenta instalar una versión con código menor y verifica que se rechace correctamente.
-
-3. **Prueba de firma**:
-   - Intenta instalar un APK firmado con un keystore diferente y verifica el mensaje de error.
 
 ---
 

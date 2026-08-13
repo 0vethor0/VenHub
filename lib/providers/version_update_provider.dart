@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -24,6 +25,8 @@ class VersionUpdateProvider with ChangeNotifier {
   bool _isDownloading = false;
   double _downloadProgress = 0.0;
   String? _errorMessage;
+  bool _isSignatureConflict = false;
+  int? _apkSizeBytes;
   bool _isDialogShowing = false;
 
   RealtimeChannel? _realtimeChannel;
@@ -39,7 +42,10 @@ class VersionUpdateProvider with ChangeNotifier {
   bool get isDownloading => _isDownloading;
   double get downloadProgress => _downloadProgress;
   String? get errorMessage => _errorMessage;
+  bool get isSignatureConflict => _isSignatureConflict;
+  int? get apkSizeBytes => _apkSizeBytes;
   bool get isDialogShowing => _isDialogShowing;
+  bool get isDebugBuild => !kReleaseMode;
   String get currentVersionName => _currentVersionName;
 
   VersionUpdateProvider({this.enableRealtime = true});
@@ -134,7 +140,7 @@ class VersionUpdateProvider with ChangeNotifier {
       _isRequired = dbObligatoria;
       notifyListeners();
 
-      // Show dialog if we are not on the startup screen (will check navigator context)
+      _fetchApkSize();
       _showUpdateDialogIfNeeded();
     } else {
       _updateAvailable = false;
@@ -181,6 +187,7 @@ class VersionUpdateProvider with ChangeNotifier {
     _isDownloading = true;
     _downloadProgress = 0.0;
     _errorMessage = null;
+    _isSignatureConflict = false;
     notifyListeners();
 
     try {
@@ -191,59 +198,139 @@ class VersionUpdateProvider with ChangeNotifier {
           return;
         }
 
-        final storageStatus = await Permission.storage.request();
-        if (!storageStatus.isGranted) {
-          _errorMessage = 'Permiso de almacenamiento denegado';
-          return;
+        if (kDebugMode) {
+          debugPrint(
+            'VersionUpdate: build debug detectado — actualización release puede fallar por firma distinta',
+          );
         }
       }
 
-      final response = await http.get(Uri.parse(_downloadUrl));
-      if (response.statusCode != 200) {
-        throw Exception('Error descargando el archivo');
-      }
+      await _fetchApkSize();
 
-      final directory = await getExternalStorageDirectory();
-      if (directory == null) {
-        throw Exception('No se puede acceder al almacenamiento externo');
-      }
-      final apkFile = File('${directory.path}/venhub_update.apk');
-      await apkFile.writeAsBytes(response.bodyBytes);
+      final client = http.Client();
+      try {
+        final request = http.Request('GET', Uri.parse(_downloadUrl));
+        final response = await client.send(request);
 
-      _downloadProgress = 1.0;
-      notifyListeners();
-
-      if (Platform.isAndroid) {
-        final uri = await _installChannel.invokeMethod<String>('getApkUri', {
-          'path': apkFile.path,
-        });
-        if (uri == null || uri.isEmpty) {
-          throw Exception('No se pudo preparar el APK para instalación');
+        if (response.statusCode != 200) {
+          throw Exception(
+            'Error descargando el archivo (${response.statusCode})',
+          );
         }
 
-        final intent = AndroidIntent(
-          action: 'action_view',
-          data: uri,
-          type: 'application/vnd.android.package-archive',
-          flags: <int>[
-            Flag.FLAG_ACTIVITY_NEW_TASK,
-            Flag.FLAG_GRANT_READ_URI_PERMISSION,
-          ],
+        final contentLength = response.contentLength ?? _apkSizeBytes ?? 0;
+        if (contentLength == 0 && kDebugMode) {
+          debugPrint(
+            'VersionUpdate: contentLength desconocido, progreso aproximado',
+          );
+        }
+
+        final directory = await getApplicationDocumentsDirectory();
+        final apkFile = File('${directory.path}/venhub_update.apk');
+        final sink = apkFile.openWrite();
+        var received = 0;
+
+        await for (final chunk in response.stream) {
+          received += chunk.length;
+          sink.add(chunk);
+          if (contentLength > 0) {
+            _downloadProgress = received / contentLength;
+            notifyListeners();
+          }
+        }
+        await sink.close();
+
+        if (!await apkFile.exists() || apkFile.lengthSync() == 0) {
+          throw Exception('El archivo descargado está vacío');
+        }
+
+        _downloadProgress = 1.0;
+        notifyListeners();
+
+        debugPrint('VersionUpdate: APK guardado en: ${apkFile.path}');
+        debugPrint(
+          'VersionUpdate: Tamaño del APK: ${apkFile.lengthSync()} bytes',
         );
-        await intent.launch();
 
-        _showInstallationStarted();
-        Future.delayed(const Duration(seconds: 1), SystemNavigator.pop);
-      } else {
-        await OpenFile.open(apkFile.path);
+        if (Platform.isAndroid) {
+          final uri = await _installChannel.invokeMethod<String>('getApkUri', {
+            'path': apkFile.path,
+          });
+          if (uri == null || uri.isEmpty) {
+            throw Exception('No se pudo preparar el APK para instalación');
+          }
+
+          debugPrint('VersionUpdate: URI generado: $uri');
+
+          final intent = AndroidIntent(
+            action: 'action_view',
+            data: uri,
+            type: 'application/vnd.android.package-archive',
+            flags: <int>[
+              Flag.FLAG_ACTIVITY_NEW_TASK,
+              Flag.FLAG_GRANT_READ_URI_PERMISSION,
+            ],
+          );
+          await intent.launch();
+
+          _showInstallationStarted();
+          Future.delayed(const Duration(seconds: 1), SystemNavigator.pop);
+        } else {
+          await OpenFile.open(apkFile.path);
+        }
+      } finally {
+        client.close();
       }
     } catch (e) {
-      _errorMessage = 'Error: ${e.toString()}';
-      debugPrint('Error en actualización: $e');
+      _setDownloadError(e);
+      debugPrint('VersionUpdate: Error en actualización: $e');
     } finally {
       _isDownloading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> _fetchApkSize() async {
+    try {
+      final response = await http.head(Uri.parse(_downloadUrl));
+      if (response.statusCode == 200) {
+        final length = int.tryParse(response.headers['content-length'] ?? '');
+        if (length != null && length > 0) {
+          _apkSizeBytes = length;
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('VersionUpdate: No se pudo obtener tamaño del APK: $e');
+      }
+    }
+  }
+
+  void _setDownloadError(Object error) {
+    final raw = error.toString();
+    if (raw.contains('INSTALL_FAILED_UPDATE_INCOMPATIBLE') ||
+        raw.contains('UPDATE_INCOMPATIBLE')) {
+      _isSignatureConflict = true;
+      _errorMessage =
+          'La versión instalada no es compatible. Desinstala la app actual primero.';
+      return;
+    }
+    _isSignatureConflict = false;
+    _errorMessage = 'Error: $raw';
+  }
+
+  /// Abre ajustes de la app para desinstalar manualmente.
+  Future<void> openAppSettingsForUninstall() async {
+    await openAppSettings();
+  }
+
+  static String formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    }
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
   void _showInstallationStarted() {
