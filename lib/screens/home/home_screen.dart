@@ -129,7 +129,9 @@ class HomeTab extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Nuevo Reporte (en desarrollo)')),
+                    const SnackBar(
+                      content: Text('Nuevo Reporte (en desarrollo)'),
+                    ),
                   );
                 },
                 icon: const Icon(Icons.add),

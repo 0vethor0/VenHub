@@ -75,7 +75,10 @@ class ReportsScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: estadoColor.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: estadoColor, width: 1),
+                                border: Border.all(
+                                  color: estadoColor,
+                                  width: 1,
+                                ),
                               ),
                               child: Text(
                                 estado,
@@ -87,7 +90,11 @@ class ReportsScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(Icons.check_circle, size: 14, color: AppTheme.successGreen),
+                            const Icon(
+                              Icons.check_circle,
+                              size: 14,
+                              color: AppTheme.successGreen,
+                            ),
                             const SizedBox(width: 4),
                             const Text(
                               'Domo IP 4K',
@@ -97,7 +104,11 @@ class ReportsScreen extends StatelessWidget {
                               ),
                             ),
                             const Spacer(),
-                            const Icon(Icons.edit, size: 16, color: AppTheme.textMuted),
+                            const Icon(
+                              Icons.edit,
+                              size: 16,
+                              color: AppTheme.textMuted,
+                            ),
                           ],
                         ),
                       ],

@@ -42,15 +42,15 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
     final auth = Provider.of<AuthProvider>(context, listen: false);
     if (auth.pendingPasswordUpdate) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const UpdatePasswordScreen()),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const UpdatePasswordScreen()));
       return;
     }
     if (auth.isAuthenticated) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
     }
   }
 
@@ -63,9 +63,9 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (success && mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
     } else if (mounted && auth.friendlyErrorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

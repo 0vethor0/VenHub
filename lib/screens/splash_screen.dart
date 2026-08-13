@@ -50,9 +50,9 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     if (mounted) {
-      await Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => nextScreen),
-      );
+      await Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => nextScreen));
     }
 
     if (updateProvider.updateAvailable && !updateProvider.isRequired) {

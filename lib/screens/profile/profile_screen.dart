@@ -31,8 +31,14 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 48,
-                    backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.2),
-                    child: const Icon(Icons.person, size: 54, color: AppTheme.primaryBlue),
+                    backgroundColor: AppTheme.primaryBlue.withValues(
+                      alpha: 0.2,
+                    ),
+                    child: const Icon(
+                      Icons.person,
+                      size: 54,
+                      color: AppTheme.primaryBlue,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -53,7 +59,10 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         Text(
                           'ID: $idShort',
-                          style: const TextStyle(fontSize: 12, color: Colors.white38),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.white38,
+                          ),
                         ),
                       ],
                     ),
@@ -130,7 +139,10 @@ class ProfileScreen extends StatelessWidget {
                 icon: Icons.photo_library,
                 title: 'Limpiar Caché de Fotos',
                 subtitle: 'Libera espacio local',
-                trailing: const Icon(Icons.chevron_right, color: Colors.white38),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  color: Colors.white38,
+                ),
               ),
               const SizedBox(height: 32),
               Center(
@@ -149,7 +161,10 @@ class ProfileScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.dangerRed,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 14,
+                    ),
                   ),
                 ),
               ),
