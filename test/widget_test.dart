@@ -59,11 +59,11 @@ void main() {
       ),
     );
 
-    // Verify that the splash screen title 'VEN 911' is rendered.
-    expect(find.text('VEN 911'), findsOneWidget);
+    // Verify that the splash screen title '911' is rendered.
+    expect(find.text('911'), findsOneWidget);
 
-    // Verify that the subtitle is rendered.
-    expect(find.text('Levantamiento de Campo - Yaracuy'), findsOneWidget);
+    // Verify that the loader subtitle is rendered.
+    expect(find.text('Cargando datos del sitio...'), findsOneWidget);
 
     // Verify that the circular progress loader is present.
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
