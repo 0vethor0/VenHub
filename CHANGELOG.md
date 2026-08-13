@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.1](https://github.com/0vethor0/VenHub/compare/v1.4.0...v1.4.1) (2026-08-13)
+
+
+### Bug Fixes
+
+* **auth system:** correcion del sistema de redireccion de token de auth con google ([b2667b8](https://github.com/0vethor0/VenHub/commit/b2667b8eb60007fb7e0185f27091a68dab191f7b))
+* **auto-update:** se quito la funcion Future.delayed(..., SystemNavigator.pop) en version_update_provider.dart. ([94c2826](https://github.com/0vethor0/VenHub/commit/94c2826856bef6998ddf60d920f82f02468daa7c))
+
 ## [1.4.0](https://github.com/0vethor0/VenHub/compare/v1.3.2...v1.4.0) (2026-08-13)
 
 
