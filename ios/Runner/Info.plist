@@ -75,5 +75,7 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSMotionUsageDescription</key>
+	<string>Necesitamos acceso al sensor de movimiento para calcular la altura del poste con la cámara del teléfono.</string>
 </dict>
 </plist>

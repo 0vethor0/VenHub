@@ -7,6 +7,7 @@ import '../../../models/punto_camara.dart';
 import '../../../providers/points_provider.dart';
 import '../../../providers/reports_provider.dart';
 import '../../../theme/app_theme.dart';
+import 'height_calculator_sheet.dart';
 
 class PointFormModal extends StatefulWidget {
   final PuntoCamara punto;
@@ -355,9 +356,29 @@ class _PointFormModalState extends State<PointFormModal>
                           child: TextField(
                             controller: _alturaPosteController,
                             keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Altura del Poste (Metros)',
                               suffixText: 'm',
+                              suffixIcon: IconButton(
+                                icon: const Icon(
+                                  Icons.straighten,
+                                  color: AppTheme.primaryBlue,
+                                ),
+                                tooltip: 'Calcular altura con el teléfono',
+                                onPressed: () async {
+                                  final resultado =
+                                      await showModalBottomSheet<double>(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        builder: (_) =>
+                                            const HeightCalculatorSheet(),
+                                      );
+                                  if (resultado != null) {
+                                    _alturaPosteController.text = resultado
+                                        .toStringAsFixed(2);
+                                  }
+                                },
+                              ),
                             ),
                           ),
                         ),

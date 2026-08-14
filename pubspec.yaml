@@ -49,6 +49,7 @@ dependencies:
   http: ^1.6.0
   fluttertoast: ^9.1.0
   app_links: ^6.0.0
+  sensors_plus: ^6.0.0
 
 dev_dependencies:
   flutter_test:

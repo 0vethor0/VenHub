@@ -4,6 +4,7 @@ import '../../../models/punto_fibra_optica.dart';
 import '../../../providers/fibra_provider.dart';
 import '../../../providers/points_provider.dart';
 import '../../../theme/app_theme.dart';
+import 'height_calculator_sheet.dart';
 
 class FibraFormModal extends StatefulWidget {
   final PuntoFibraOptica punto;
@@ -120,8 +121,26 @@ class _FibraFormModalState extends State<FibraFormModal> {
                   TextField(
                     controller: _alturaPosteController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Altura del poste (m)',
+                      suffixIcon: IconButton(
+                        icon: const Icon(
+                          Icons.straighten,
+                          color: AppTheme.primaryBlue,
+                        ),
+                        tooltip: 'Calcular altura con el teléfono',
+                        onPressed: () async {
+                          final resultado = await showModalBottomSheet<double>(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (_) => const HeightCalculatorSheet(),
+                          );
+                          if (resultado != null) {
+                            _alturaPosteController.text = resultado
+                                .toStringAsFixed(2);
+                          }
+                        },
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
