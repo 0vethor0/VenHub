@@ -238,7 +238,9 @@ class _PointFormModalState extends State<PointFormModal>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Eliminar Punto'),
-        content: const Text('¿Está seguro de que desea eliminar este punto? Esta acción no se puede deshacer.'),
+        content: const Text(
+          '¿Está seguro de que desea eliminar este punto? Esta acción no se puede deshacer.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -254,9 +256,12 @@ class _PointFormModalState extends State<PointFormModal>
     );
 
     if (confirmed == true && mounted) {
-      final pointsProvider = Provider.of<PointsProvider>(context, listen: false);
+      final pointsProvider = Provider.of<PointsProvider>(
+        context,
+        listen: false,
+      );
       final isPropuesta = widget.punto.tipoPunto == 'propuesta_mejora';
-      
+
       final success = await pointsProvider.deletePunto(
         widget.punto.id,
         isPropuesta: isPropuesta,
@@ -273,7 +278,9 @@ class _PointFormModalState extends State<PointFormModal>
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al eliminar: ${pointsProvider.errorMessage ?? "Desconocido"}'),
+            content: Text(
+              'Error al eliminar: ${pointsProvider.errorMessage ?? "Desconocido"}',
+            ),
             backgroundColor: AppTheme.dangerRed,
           ),
         );

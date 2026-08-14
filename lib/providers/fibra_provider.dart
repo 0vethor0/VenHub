@@ -134,13 +134,18 @@ class FibraProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> updateUbicacion(String puntoId, double newLat, double newLon) async {
+  Future<bool> updateUbicacion(
+    String puntoId,
+    double newLat,
+    double newLon,
+  ) async {
     try {
-      final data = {
-        'ubicacion': 'POINT($newLon $newLat)',
-      };
+      final data = {'ubicacion': 'POINT($newLon $newLat)'};
 
-      await _supabase.from('puntos_fibra_optica').update(data).eq('id', puntoId);
+      await _supabase
+          .from('puntos_fibra_optica')
+          .update(data)
+          .eq('id', puntoId);
       await fetchPuntos();
       return true;
     } catch (e) {

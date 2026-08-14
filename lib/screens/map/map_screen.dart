@@ -131,8 +131,12 @@ class _MapScreenState extends State<MapScreen> {
             options: MapOptions(
               initialCenter: _initialCenter,
               initialZoom: 13.0,
-              onTap: _isEditMode && _draggingPointId == null ? _handleMapTapForNewPoint : null,
-              onLongPress: _isEditMode && _draggingPointId != null ? _handleMapLongPress : null,
+              onTap: _isEditMode && _draggingPointId == null
+                  ? _handleMapTapForNewPoint
+                  : null,
+              onLongPress: _isEditMode && _draggingPointId != null
+                  ? _handleMapLongPress
+                  : null,
             ),
             children: [
               TileLayer(
@@ -188,9 +192,8 @@ class _MapScreenState extends State<MapScreen> {
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
-                          builder: (_) => PropuestaFormModal(
-                            propuesta: propuesta,
-                          ),
+                          builder: (_) =>
+                              PropuestaFormModal(propuesta: propuesta),
                         );
                       },
                       onLongPressStart: _isEditMode

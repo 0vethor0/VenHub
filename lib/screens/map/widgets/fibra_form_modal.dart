@@ -94,7 +94,9 @@ class _FibraFormModalState extends State<FibraFormModal> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Eliminar Punto de Fibra'),
-        content: const Text('¿Está seguro de que desea eliminar este punto de fibra? Esta acción no se puede deshacer.'),
+        content: const Text(
+          '¿Está seguro de que desea eliminar este punto de fibra? Esta acción no se puede deshacer.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -111,7 +113,7 @@ class _FibraFormModalState extends State<FibraFormModal> {
 
     if (confirmed == true && mounted) {
       final provider = Provider.of<FibraProvider>(context, listen: false);
-      
+
       final success = await provider.deletePuntoFibra(widget.punto.id);
 
       if (success && mounted) {
@@ -125,7 +127,9 @@ class _FibraFormModalState extends State<FibraFormModal> {
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al eliminar: ${provider.errorMessage ?? "Desconocido"}'),
+            content: Text(
+              'Error al eliminar: ${provider.errorMessage ?? "Desconocido"}',
+            ),
             backgroundColor: AppTheme.dangerRed,
           ),
         );
@@ -146,7 +150,11 @@ class _FibraFormModalState extends State<FibraFormModal> {
         children: [
           Row(
             children: [
-              const Icon(Icons.settings_input_component, color: AppTheme.primaryBlue, size: 28),
+              const Icon(
+                Icons.settings_input_component,
+                color: AppTheme.primaryBlue,
+                size: 28,
+              ),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(

@@ -13,7 +13,8 @@ class PointsProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   StreamSubscription<List<Map<String, dynamic>>>? _realtimeSubscription;
-  StreamSubscription<List<Map<String, dynamic>>>? _realtimePropuestasSubscription;
+  StreamSubscription<List<Map<String, dynamic>>>?
+  _realtimePropuestasSubscription;
   StreamSubscription<AuthState>? _authSubscription;
   final bool enableRealtime;
 
@@ -71,9 +72,7 @@ class PointsProvider extends ChangeNotifier {
       });
 
       if (res is List) {
-        _puntos = res
-            .map((item) => PuntoCamara.fromMap(item))
-            .toList();
+        _puntos = res.map((item) => PuntoCamara.fromMap(item)).toList();
       }
     } catch (e) {
       // Try direct select fallback
@@ -199,7 +198,8 @@ class PointsProvider extends ChangeNotifier {
         'nombre': nombre,
         'ubicacion': 'POINT($lon $lat)',
         'punto_camara_referencia_id':
-            (puntoCamaraReferenciaId != null && puntoCamaraReferenciaId.isNotEmpty)
+            (puntoCamaraReferenciaId != null &&
+                puntoCamaraReferenciaId.isNotEmpty)
             ? puntoCamaraReferenciaId
             : null,
         'actualizado_por': userId,
@@ -221,7 +221,10 @@ class PointsProvider extends ChangeNotifier {
   Future<bool> deletePunto(String puntoId, {bool isPropuesta = false}) async {
     try {
       if (isPropuesta) {
-        await _supabase.from('propuesta_puntos_camara').delete().eq('id', puntoId);
+        await _supabase
+            .from('propuesta_puntos_camara')
+            .delete()
+            .eq('id', puntoId);
         await fetchPropuestas();
       } else {
         await _supabase.from('puntos_camara').delete().eq('id', puntoId);
@@ -235,7 +238,12 @@ class PointsProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> updateUbicacion(String puntoId, double newLat, double newLon, {bool isPropuesta = false}) async {
+  Future<bool> updateUbicacion(
+    String puntoId,
+    double newLat,
+    double newLon, {
+    bool isPropuesta = false,
+  }) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       final data = {
@@ -245,7 +253,10 @@ class PointsProvider extends ChangeNotifier {
       };
 
       if (isPropuesta) {
-        await _supabase.from('propuesta_puntos_camara').update(data).eq('id', puntoId);
+        await _supabase
+            .from('propuesta_puntos_camara')
+            .update(data)
+            .eq('id', puntoId);
         await fetchPropuestas();
       } else {
         await _supabase.from('puntos_camara').update(data).eq('id', puntoId);
@@ -259,7 +270,10 @@ class PointsProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> updatePropuesta(String propuestaId, Map<String, dynamic> updates) async {
+  Future<bool> updatePropuesta(
+    String propuestaId,
+    Map<String, dynamic> updates,
+  ) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       final data = {
@@ -268,7 +282,10 @@ class PointsProvider extends ChangeNotifier {
         'actualizado_en': DateTime.now().toIso8601String(),
       };
 
-      await _supabase.from('propuesta_puntos_camara').update(data).eq('id', propuestaId);
+      await _supabase
+          .from('propuesta_puntos_camara')
+          .update(data)
+          .eq('id', propuestaId);
       await fetchPropuestas();
       return true;
     } catch (e) {

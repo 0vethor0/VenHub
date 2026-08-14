@@ -201,7 +201,9 @@ class _PropuestaFormModalState extends State<PropuestaFormModal>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Eliminar Propuesta'),
-        content: const Text('¿Está seguro de que desea eliminar esta propuesta? Esta acción no se puede deshacer.'),
+        content: const Text(
+          '¿Está seguro de que desea eliminar esta propuesta? Esta acción no se puede deshacer.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -217,8 +219,11 @@ class _PropuestaFormModalState extends State<PropuestaFormModal>
     );
 
     if (confirmed == true && mounted) {
-      final pointsProvider = Provider.of<PointsProvider>(context, listen: false);
-      
+      final pointsProvider = Provider.of<PointsProvider>(
+        context,
+        listen: false,
+      );
+
       final success = await pointsProvider.deletePunto(
         widget.propuesta.id,
         isPropuesta: true,
@@ -235,7 +240,9 @@ class _PropuestaFormModalState extends State<PropuestaFormModal>
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al eliminar: ${pointsProvider.errorMessage ?? "Desconocido"}'),
+            content: Text(
+              'Error al eliminar: ${pointsProvider.errorMessage ?? "Desconocido"}',
+            ),
             backgroundColor: AppTheme.dangerRed,
           ),
         );
@@ -268,7 +275,11 @@ class _PropuestaFormModalState extends State<PropuestaFormModal>
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(Icons.add_location, color: AppTheme.successGreen, size: 28),
+              const Icon(
+                Icons.add_location,
+                color: AppTheme.successGreen,
+                size: 28,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -321,7 +332,8 @@ class _PropuestaFormModalState extends State<PropuestaFormModal>
                         initialValue: _puntoCamaraReferenciaId,
                         decoration: const InputDecoration(
                           labelText: 'Cámara de referencia',
-                          helperText: 'Seleccione la cámara existente relacionada',
+                          helperText:
+                              'Seleccione la cámara existente relacionada',
                           prefixIcon: Icon(Icons.link),
                         ),
                         items: Provider.of<PointsProvider>(context)
@@ -585,13 +597,23 @@ class _PropuestaFormModalState extends State<PropuestaFormModal>
                         initialValue: _estadoPropuesta,
                         decoration: const InputDecoration(
                           labelText: 'Estado de la Propuesta',
-                          helperText: 'Estado actual de la propuesta de nueva cámara',
+                          helperText:
+                              'Estado actual de la propuesta de nueva cámara',
                         ),
-                        items: ['pendiente', 'en_revision', 'aprobada', 'rechazada']
-                            .map(
-                              (e) => DropdownMenuItem(value: e, child: Text(e.toUpperCase())),
-                            )
-                            .toList(),
+                        items:
+                            [
+                                  'pendiente',
+                                  'en_revision',
+                                  'aprobada',
+                                  'rechazada',
+                                ]
+                                .map(
+                                  (e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text(e.toUpperCase()),
+                                  ),
+                                )
+                                .toList(),
                         onChanged: (val) =>
                             setState(() => _estadoPropuesta = val),
                       ),
@@ -602,12 +624,17 @@ class _PropuestaFormModalState extends State<PropuestaFormModal>
                             padding: const EdgeInsets.all(16.0),
                             child: Column(
                               children: [
-                                const Icon(Icons.image, size: 48, color: AppTheme.primaryBlue),
+                                const Icon(
+                                  Icons.image,
+                                  size: 48,
+                                  color: AppTheme.primaryBlue,
+                                ),
                                 const SizedBox(height: 8),
                                 const Text('Evidencia capturada'),
                                 const SizedBox(height: 8),
                                 ElevatedButton.icon(
-                                  onPressed: () => setState(() => _selectedImage = null),
+                                  onPressed: () =>
+                                      setState(() => _selectedImage = null),
                                   icon: const Icon(Icons.delete),
                                   label: const Text('Eliminar'),
                                   style: ElevatedButton.styleFrom(
@@ -621,7 +648,10 @@ class _PropuestaFormModalState extends State<PropuestaFormModal>
                       else
                         Card(
                           child: ListTile(
-                            leading: const Icon(Icons.camera_alt, color: AppTheme.primaryBlue),
+                            leading: const Icon(
+                              Icons.camera_alt,
+                              color: AppTheme.primaryBlue,
+                            ),
                             title: const Text('Agregar evidencia fotográfica'),
                             subtitle: const Text('Foto del sitio propuesto'),
                             onTap: _pickImage,

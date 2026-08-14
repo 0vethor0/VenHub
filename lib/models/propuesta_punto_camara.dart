@@ -20,7 +20,8 @@ class PropuestaPuntoCamara {
   final String? flujoVehicular;
   final String? puntosCiegos;
   final String? observaciones;
-  final String estadoPropuesta; // 'pendiente' | 'aprobada' | 'rechazada' | 'en_revision'
+  final String
+  estadoPropuesta; // 'pendiente' | 'aprobada' | 'rechazada' | 'en_revision'
   final String? puntoCamaraReferenciaId;
   final String? estadoPoste;
   final bool? presenciaLuzFarol;
