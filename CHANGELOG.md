@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/0vethor0/VenHub/compare/v1.4.1...v1.5.0) (2026-08-14)
+
+
+### Features
+
+* **mapa:** agregar puntos de fibra óptica y propuestas de mejora de cámaras ([29338ce](https://github.com/0vethor0/VenHub/commit/29338ce8fb6c3303210f6f1c19c5406f1abbfeec))
+
 ## [1.4.1](https://github.com/0vethor0/VenHub/compare/v1.4.0...v1.4.1) (2026-08-13)
 
 
