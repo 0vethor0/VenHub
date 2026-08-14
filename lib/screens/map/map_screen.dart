@@ -4,11 +4,13 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../../models/punto_camara.dart';
 import '../../models/punto_fibra_optica.dart';
+import '../../models/propuesta_punto_camara.dart';
 import '../../providers/fibra_provider.dart';
 import '../../providers/points_provider.dart';
 import '../../theme/app_theme.dart';
 import 'widgets/fibra_form_modal.dart';
 import 'widgets/point_form_modal.dart';
+import 'widgets/propuesta_form_modal.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -23,6 +25,9 @@ class _MapScreenState extends State<MapScreen> {
   bool _filterEnergiaOnly = false;
   bool _filterFibraOnly = false;
   bool _isEditMode = false;
+  String? _draggingPointId;
+  bool _isDraggingPropuesta = false;
+  bool _isDraggingFibra = false;
 
   final LatLng _initialCenter = const LatLng(10.339, -68.735);
 
@@ -42,6 +47,49 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  void _handleMapLongPress(TapPosition _, LatLng point) async {
+    if (_draggingPointId == null) return;
+
+    if (!mounted) return;
+
+    final pointsProvider = Provider.of<PointsProvider>(context, listen: false);
+    final fibraProvider = Provider.of<FibraProvider>(context, listen: false);
+
+    bool success = false;
+
+    if (_isDraggingPropuesta) {
+      success = await pointsProvider.updateUbicacion(
+        _draggingPointId!,
+        point.latitude,
+        point.longitude,
+        isPropuesta: true,
+      );
+    } else if (_isDraggingFibra) {
+      success = await fibraProvider.updateUbicacion(
+        _draggingPointId!,
+        point.latitude,
+        point.longitude,
+      );
+    }
+
+    if (!mounted) return;
+
+    if (success) {
+      setState(() {
+        _draggingPointId = null;
+        _isDraggingPropuesta = false;
+        _isDraggingFibra = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ubicación actualizada correctamente')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al actualizar ubicación')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final pointsProvider = Provider.of<PointsProvider>(context);
@@ -55,7 +103,7 @@ class _MapScreenState extends State<MapScreen> {
       return matchesSearch && matchesEnergia && matchesFibra;
     }).toList();
 
-    final filteredPropuestas = pointsProvider.puntosPropuesta.where((p) {
+    final filteredPropuestas = pointsProvider.propuestas.where((p) {
       final matchesSearch =
           _searchQuery.isEmpty ||
           p.nombre.toLowerCase().contains(_searchQuery.toLowerCase());
@@ -83,7 +131,8 @@ class _MapScreenState extends State<MapScreen> {
             options: MapOptions(
               initialCenter: _initialCenter,
               initialZoom: 13.0,
-              onTap: _isEditMode ? _handleMapTapForNewPoint : null,
+              onTap: _isEditMode && _draggingPointId == null ? _handleMapTapForNewPoint : null,
+              onLongPress: _isEditMode && _draggingPointId != null ? _handleMapLongPress : null,
             ),
             children: [
               TileLayer(
@@ -129,33 +178,55 @@ class _MapScreenState extends State<MapScreen> {
                 }).toList(),
               ),
               MarkerLayer(
-                markers: filteredPropuestas.map((punto) {
+                markers: filteredPropuestas.map((propuesta) {
                   return Marker(
                     width: 40,
                     height: 40,
-                    point: LatLng(punto.latitud, punto.longitud),
+                    point: LatLng(propuesta.latitud, propuesta.longitud),
                     child: GestureDetector(
                       onTap: () {
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
-                          builder: (_) => PointFormModal(punto: punto),
+                          builder: (_) => PropuestaFormModal(
+                            propuesta: propuesta,
+                          ),
                         );
                       },
-                      child: Transform.rotate(
-                        angle: 0.785398, // 45 degrees in radians
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppTheme.warningYellow,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
+                      onLongPressStart: _isEditMode
+                          ? (details) {
+                              setState(() {
+                                _draggingPointId = propuesta.id;
+                                _isDraggingPropuesta = true;
+                              });
+                            }
+                          : null,
+                      onLongPressEnd: _isEditMode
+                          ? (details) async {
+                              if (_draggingPointId == propuesta.id) {
+                                setState(() {
+                                  _draggingPointId = null;
+                                  _isDraggingPropuesta = false;
+                                });
+                              }
+                            }
+                          : null,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _isEditMode && _draggingPointId == propuesta.id
+                              ? AppTheme.warningYellow
+                              : AppTheme.successGreen,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: Transform.rotate(
+                          angle: 0.785398,
                           child: Transform.rotate(
                             angle: -0.785398,
                             child: const Stack(
@@ -198,9 +269,29 @@ class _MapScreenState extends State<MapScreen> {
                           builder: (_) => FibraFormModal(punto: punto),
                         );
                       },
+                      onLongPressStart: _isEditMode
+                          ? (details) {
+                              setState(() {
+                                _draggingPointId = punto.id;
+                                _isDraggingFibra = true;
+                              });
+                            }
+                          : null,
+                      onLongPressEnd: _isEditMode
+                          ? (details) async {
+                              if (_draggingPointId == punto.id) {
+                                setState(() {
+                                  _draggingPointId = null;
+                                  _isDraggingFibra = false;
+                                });
+                              }
+                            }
+                          : null,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryBlue,
+                          color: _isEditMode && _draggingPointId == punto.id
+                              ? AppTheme.warningYellow
+                              : AppTheme.primaryBlue,
                           shape: BoxShape.rectangle,
                           borderRadius: BorderRadius.circular(4),
                           boxShadow: [
@@ -287,6 +378,19 @@ class _MapScreenState extends State<MapScreen> {
                             ),
                             backgroundColor: AppTheme.borderLight,
                           ),
+                          const SizedBox(width: 8),
+                          if (_isEditMode)
+                            Chip(
+                              label: const Text(
+                                'Modo Edición Activo',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              backgroundColor: AppTheme.warningYellow,
+                            ),
                         ],
                       ),
                     ),
@@ -365,7 +469,7 @@ class _NewPointTypeSheet extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.warningYellow,
+                  color: AppTheme.successGreen,
                   border: Border.all(color: Colors.white, width: 2),
                 ),
                 child: Transform.rotate(
@@ -385,14 +489,13 @@ class _NewPointTypeSheet extends StatelessWidget {
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
-                builder: (_) => PointFormModal(
-                  punto: PuntoCamara(
-                    id: '', // New point
+                builder: (_) => PropuestaFormModal(
+                  propuesta: PropuestaPuntoCamara(
+                    id: '', // New proposal
                     nombre: 'Propuesta: ${nearest?.nombre ?? "Nueva"}',
                     latitud: point.latitude,
                     longitud: point.longitude,
-                    tipoPunto: 'propuesta_mejora',
-                    puntoReferenciaId: nearest?.id,
+                    puntoCamaraReferenciaId: nearest?.id,
                   ),
                 ),
               );

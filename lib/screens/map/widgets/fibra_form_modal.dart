@@ -89,6 +89,50 @@ class _FibraFormModalState extends State<FibraFormModal> {
     }
   }
 
+  Future<void> _deletePunto() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Punto de Fibra'),
+        content: const Text('¿Está seguro de que desea eliminar este punto de fibra? Esta acción no se puede deshacer.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.dangerRed),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final provider = Provider.of<FibraProvider>(context, listen: false);
+      
+      final success = await provider.deletePuntoFibra(widget.punto.id);
+
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Punto de fibra eliminado correctamente'),
+            backgroundColor: AppTheme.successGreen,
+          ),
+        );
+        Navigator.of(context).pop();
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al eliminar: ${provider.errorMessage ?? "Desconocido"}'),
+            backgroundColor: AppTheme.dangerRed,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -100,13 +144,31 @@ class _FibraFormModalState extends State<FibraFormModal> {
       ),
       child: Column(
         children: [
-          const Text(
-            'Punto de Fibra Óptica',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textDark,
-            ),
+          Row(
+            children: [
+              const Icon(Icons.settings_input_component, color: AppTheme.primaryBlue, size: 28),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Punto de Fibra Óptica',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textDark,
+                  ),
+                ),
+              ),
+              if (widget.punto.id.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.delete, color: AppTheme.dangerRed),
+                  onPressed: _deletePunto,
+                  tooltip: 'Eliminar punto de fibra',
+                ),
+              IconButton(
+                icon: const Icon(Icons.close, color: AppTheme.textMuted),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           Expanded(

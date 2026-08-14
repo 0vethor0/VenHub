@@ -3,22 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../models/punto_camara.dart';
+import '../../../models/propuesta_punto_camara.dart';
 import '../../../providers/points_provider.dart';
-import '../../../providers/reports_provider.dart';
 import '../../../theme/app_theme.dart';
 import 'height_calculator_sheet.dart';
 
-class PointFormModal extends StatefulWidget {
-  final PuntoCamara punto;
+class PropuestaFormModal extends StatefulWidget {
+  final PropuestaPuntoCamara propuesta;
 
-  const PointFormModal({super.key, required this.punto});
+  const PropuestaFormModal({super.key, required this.propuesta});
 
   @override
-  State<PointFormModal> createState() => _PointFormModalState();
+  State<PropuestaFormModal> createState() => _PropuestaFormModalState();
 }
 
-class _PointFormModalState extends State<PointFormModal>
+class _PropuestaFormModalState extends State<PropuestaFormModal>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late bool _energiaElectrica;
@@ -35,13 +34,13 @@ class _PointFormModalState extends State<PointFormModal>
   late String? _flujoVehicular;
   late TextEditingController _puntosCiegosController;
   late TextEditingController _observacionesController;
+  late String? _estadoPropuesta;
+  late String? _puntoCamaraReferenciaId;
   late TextEditingController _estadoPosteController;
   late bool? _presenciaLuzFarol;
   late String? _fluctuacionElectrica;
   late String? _urlEvidencia;
-  late String? _puntoReferenciaId;
 
-  final _reporteObservacionController = TextEditingController();
   File? _selectedImage;
   bool _isSaving = false;
 
@@ -49,48 +48,40 @@ class _PointFormModalState extends State<PointFormModal>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _energiaElectrica = widget.punto.energiaElectrica;
-    _nivelTension = widget.punto.nivelTension;
-    _existenciaPoste = widget.punto.existenciaPoste;
+    _energiaElectrica = widget.propuesta.energiaElectrica;
+    _nivelTension = widget.propuesta.nivelTension;
+    _existenciaPoste = widget.propuesta.existenciaPoste;
     _alturaPosteController = TextEditingController(
-      text: widget.punto.alturaPosteMetros?.toString() ?? '',
+      text: widget.propuesta.alturaPosteMetros?.toString() ?? '',
     );
-    _fibraOptica = widget.punto.fibraOptica;
+    _fibraOptica = widget.propuesta.fibraOptica;
     _distanciaNodoController = TextEditingController(
-      text: widget.punto.distanciaNodoMetros?.toString() ?? '',
+      text: widget.propuesta.distanciaNodoMetros?.toString() ?? '',
     );
-    _indiceDelictivo = widget.punto.indiceDelictivo;
-    _tipoZona = widget.punto.tipoZona;
+    _indiceDelictivo = widget.propuesta.indiceDelictivo;
+    _tipoZona = widget.propuesta.tipoZona;
     _notasController = TextEditingController(
-      text: widget.punto.optimizacionSitioNotas ?? '',
+      text: widget.propuesta.optimizacionSitioNotas ?? '',
     );
     _contextoEspecificoController = TextEditingController(
-      text: widget.punto.contextoEspecifico ?? '',
+      text: widget.propuesta.contextoEspecifico ?? '',
     );
-    _flujoPeatonal = widget.punto.flujoPeatonal;
-    _flujoVehicular = widget.punto.flujoVehicular;
+    _flujoPeatonal = widget.propuesta.flujoPeatonal;
+    _flujoVehicular = widget.propuesta.flujoVehicular;
     _puntosCiegosController = TextEditingController(
-      text: widget.punto.puntosCiegos ?? '',
+      text: widget.propuesta.puntosCiegos ?? '',
     );
     _observacionesController = TextEditingController(
-      text: widget.punto.observaciones ?? '',
+      text: widget.propuesta.observaciones ?? '',
     );
+    _estadoPropuesta = widget.propuesta.estadoPropuesta;
+    _puntoCamaraReferenciaId = widget.propuesta.puntoCamaraReferenciaId;
     _estadoPosteController = TextEditingController(
-      text: widget.punto.estadoPoste ?? '',
+      text: widget.propuesta.estadoPoste ?? '',
     );
-    _presenciaLuzFarol = widget.punto.presenciaLuzFarol;
-    _fluctuacionElectrica = widget.punto.fluctuacionElectrica;
-    _urlEvidencia = widget.punto.urlEvidencia;
-    _puntoReferenciaId = widget.punto.puntoReferenciaId;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.punto.id.isNotEmpty) {
-        Provider.of<ReportsProvider>(
-          context,
-          listen: false,
-        ).fetchReportesPorPunto(widget.punto.id);
-      }
-    });
+    _presenciaLuzFarol = widget.propuesta.presenciaLuzFarol;
+    _fluctuacionElectrica = widget.propuesta.fluctuacionElectrica;
+    _urlEvidencia = widget.propuesta.urlEvidencia;
   }
 
   @override
@@ -103,7 +94,6 @@ class _PointFormModalState extends State<PointFormModal>
     _puntosCiegosController.dispose();
     _observacionesController.dispose();
     _estadoPosteController.dispose();
-    _reporteObservacionController.dispose();
     super.dispose();
   }
 
@@ -126,11 +116,10 @@ class _PointFormModalState extends State<PointFormModal>
 
     String? evidenceUrl = _urlEvidencia;
     if (_selectedImage != null) {
-      // Subir imagen de evidencia si se seleccionó una
       try {
         final fileExt = _selectedImage!.path.split('.').last;
         final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-        final path = 'puntos_camara/${widget.punto.id}/$fileName';
+        final path = 'propuestas_camara/${widget.propuesta.id}/$fileName';
 
         await Supabase.instance.client.storage
             .from('reportes_media')
@@ -138,7 +127,7 @@ class _PointFormModalState extends State<PointFormModal>
 
         evidenceUrl = path;
       } catch (e) {
-        debugPrint('Error uploading point evidence: $e');
+        debugPrint('Error uploading proposal evidence: $e');
       }
     }
 
@@ -157,24 +146,26 @@ class _PointFormModalState extends State<PointFormModal>
       'flujo_vehicular': _flujoVehicular,
       'puntos_ciegos': _puntosCiegosController.text,
       'observaciones': _observacionesController.text,
+      'estado_propuesta': _estadoPropuesta,
+      'punto_camara_referencia_id': _puntoCamaraReferenciaId,
       'estado_poste': _estadoPosteController.text,
       'presencia_luz_farol': _presenciaLuzFarol,
       'fluctuacion_electrica': _fluctuacionElectrica,
       'url_evidencia': evidenceUrl,
-      'punto_referencia_id': _puntoReferenciaId,
     };
 
     final bool ok;
-    if (widget.punto.id.isEmpty) {
+    if (widget.propuesta.id.isEmpty) {
       ok = await pointsProvider.crearPuntoPropuesta(
-        nombre: widget.punto.nombre,
-        lat: widget.punto.latitud,
-        lon: widget.punto.longitud,
-        puntoCamaraReferenciaId: _puntoReferenciaId,
+        nombre: widget.propuesta.nombre,
+        lat: widget.propuesta.latitud,
+        lon: widget.propuesta.longitud,
+        puntoCamaraReferenciaId: _puntoCamaraReferenciaId,
         datosAdicionales: updates,
       );
     } else {
-      ok = await pointsProvider.updatePunto(widget.punto.id, updates);
+      // Update existing proposal
+      ok = await pointsProvider.updatePropuesta(widget.propuesta.id, updates);
     }
 
     setState(() => _isSaving = false);
@@ -184,9 +175,9 @@ class _PointFormModalState extends State<PointFormModal>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              widget.punto.id.isEmpty
-                  ? 'Propuesta de mejora creada con éxito'
-                  : 'Punto de cámara actualizado con éxito',
+              widget.propuesta.id.isEmpty
+                  ? 'Propuesta creada con éxito'
+                  : 'Propuesta actualizada con éxito',
             ),
             backgroundColor: AppTheme.successGreen,
           ),
@@ -196,7 +187,7 @@ class _PointFormModalState extends State<PointFormModal>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Error al guardar los cambios: ${pointsProvider.errorMessage ?? 'Desconocido'}',
+              'Error al guardar: ${pointsProvider.errorMessage ?? 'Desconocido'}',
             ),
             backgroundColor: AppTheme.dangerRed,
           ),
@@ -205,40 +196,12 @@ class _PointFormModalState extends State<PointFormModal>
     }
   }
 
-  Future<void> _submitReporte() async {
-    if (_reporteObservacionController.text.trim().isEmpty) return;
-
-    final reportsProvider = Provider.of<ReportsProvider>(
-      context,
-      listen: false,
-    );
-
-    final ok = await reportsProvider.crearReporte(
-      puntoId: widget.punto.id,
-      observacion: _reporteObservacionController.text.trim(),
-      fotoFile: _selectedImage,
-    );
-
-    if (ok && mounted) {
-      _reporteObservacionController.clear();
-      setState(() {
-        _selectedImage = null;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Observación registrada en el foro'),
-          backgroundColor: AppTheme.successGreen,
-        ),
-      );
-    }
-  }
-
-  Future<void> _deletePunto() async {
+  Future<void> _deletePropuesta() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar Punto'),
-        content: const Text('¿Está seguro de que desea eliminar este punto? Esta acción no se puede deshacer.'),
+        title: const Text('Eliminar Propuesta'),
+        content: const Text('¿Está seguro de que desea eliminar esta propuesta? Esta acción no se puede deshacer.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -255,17 +218,16 @@ class _PointFormModalState extends State<PointFormModal>
 
     if (confirmed == true && mounted) {
       final pointsProvider = Provider.of<PointsProvider>(context, listen: false);
-      final isPropuesta = widget.punto.tipoPunto == 'propuesta_mejora';
       
       final success = await pointsProvider.deletePunto(
-        widget.punto.id,
-        isPropuesta: isPropuesta,
+        widget.propuesta.id,
+        isPropuesta: true,
       );
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Punto eliminado correctamente'),
+            content: Text('Propuesta eliminada correctamente'),
             backgroundColor: AppTheme.successGreen,
           ),
         );
@@ -283,8 +245,6 @@ class _PointFormModalState extends State<PointFormModal>
 
   @override
   Widget build(BuildContext context) {
-    final reportsProvider = Provider.of<ReportsProvider>(context);
-
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       padding: const EdgeInsets.all(16),
@@ -308,11 +268,11 @@ class _PointFormModalState extends State<PointFormModal>
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(Icons.videocam, color: AppTheme.primaryBlue, size: 28),
+              const Icon(Icons.add_location, color: AppTheme.successGreen, size: 28),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  widget.punto.nombre,
+                  widget.propuesta.nombre,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -321,11 +281,11 @@ class _PointFormModalState extends State<PointFormModal>
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (widget.punto.id.isNotEmpty)
+              if (widget.propuesta.id.isNotEmpty)
                 IconButton(
                   icon: const Icon(Icons.delete, color: AppTheme.dangerRed),
-                  onPressed: _deletePunto,
-                  tooltip: 'Eliminar punto',
+                  onPressed: _deletePropuesta,
+                  tooltip: 'Eliminar propuesta',
                 ),
               IconButton(
                 icon: const Icon(Icons.close, color: AppTheme.textMuted),
@@ -334,7 +294,7 @@ class _PointFormModalState extends State<PointFormModal>
             ],
           ),
           Text(
-            'Ubicación: ${widget.punto.latitud.toStringAsFixed(5)}, ${widget.punto.longitud.toStringAsFixed(5)} (${widget.punto.estado})',
+            'Ubicación: ${widget.propuesta.latitud.toStringAsFixed(5)}, ${widget.propuesta.longitud.toStringAsFixed(5)} (${widget.propuesta.estado})',
             style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
           ),
           const SizedBox(height: 12),
@@ -344,8 +304,8 @@ class _PointFormModalState extends State<PointFormModal>
             labelColor: AppTheme.primaryBlue,
             unselectedLabelColor: AppTheme.textMuted,
             tabs: const [
-              Tab(icon: Icon(Icons.edit_note), text: 'Evaluación Campo'),
-              Tab(icon: Icon(Icons.forum), text: 'Foro Reportes'),
+              Tab(icon: Icon(Icons.edit_note), text: 'Detalles Propuesta'),
+              Tab(icon: Icon(Icons.info), text: 'Estado'),
             ],
           ),
           const SizedBox(height: 12),
@@ -353,33 +313,29 @@ class _PointFormModalState extends State<PointFormModal>
             child: TabBarView(
               controller: _tabController,
               children: [
-                // TAB 1: FORMULARIO CAMPO
+                // TAB 1: DETALLES
                 SingleChildScrollView(
                   child: Column(
                     children: [
-                      if (widget.punto.tipoPunto == 'propuesta_mejora')
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: DropdownButtonFormField<String>(
-                            initialValue: _puntoReferenciaId,
-                            decoration: const InputDecoration(
-                              labelText: 'Cámara a la que mejora',
-                              helperText: 'Seleccione la cámara original',
-                              prefixIcon: Icon(Icons.link),
-                            ),
-                            items: Provider.of<PointsProvider>(context)
-                                .puntosExistentes
-                                .map(
-                                  (p) => DropdownMenuItem(
-                                    value: p.id,
-                                    child: Text(p.nombre),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (val) =>
-                                setState(() => _puntoReferenciaId = val),
-                          ),
+                      DropdownButtonFormField<String>(
+                        initialValue: _puntoCamaraReferenciaId,
+                        decoration: const InputDecoration(
+                          labelText: 'Cámara de referencia',
+                          helperText: 'Seleccione la cámara existente relacionada',
+                          prefixIcon: Icon(Icons.link),
                         ),
+                        items: Provider.of<PointsProvider>(context)
+                            .puntosExistentes
+                            .map(
+                              (p) => DropdownMenuItem(
+                                value: p.id,
+                                child: Text(p.nombre),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => _puntoCamaraReferenciaId = val),
+                      ),
                       SwitchListTile(
                         title: const Text(
                           'Energía Eléctrica disponible',
@@ -614,137 +570,78 @@ class _PointFormModalState extends State<PointFormModal>
                               ? const CircularProgressIndicator(
                                   color: Colors.white,
                                 )
-                              : const Text('Guardar Evaluación'),
+                              : const Text('Guardar Propuesta'),
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                // TAB 2: FORO DE REPORTES
-                if (widget.punto.id.isEmpty)
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(32.0),
-                      child: Text(
-                        'El foro de reportes estará disponible una vez creada la propuesta.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: AppTheme.textMuted),
-                      ),
-                    ),
-                  )
-                else
-                  Column(
+                // TAB 2: ESTADO
+                SingleChildScrollView(
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: reportsProvider.isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : reportsProvider.reportes.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'No hay reportes registrados para este punto',
-                                  style: TextStyle(color: AppTheme.textMuted),
-                                ),
-                              )
-                            : ListView.builder(
-                                itemCount: reportsProvider.reportes.length,
-                                itemBuilder: (ctx, i) {
-                                  final rep = reportsProvider.reportes[i];
-                                  return Card(
-                                    margin: const EdgeInsets.symmetric(
-                                      vertical: 6,
-                                    ),
-                                    child: ListTile(
-                                      title: Text(
-                                        rep.observacion,
-                                        style: const TextStyle(
-                                          color: AppTheme.textDark,
-                                        ),
-                                      ),
-                                      subtitle: Text(
-                                        'Por: ${rep.autorNombre ?? 'Inspector'} • ${rep.creadoEn.day}/${rep.creadoEn.month}/${rep.creadoEn.year} ${rep.creadoEn.hour}:${rep.creadoEn.minute.toString().padLeft(2, '0')}',
-                                        style: const TextStyle(
-                                          color: AppTheme.textMuted,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      trailing: rep.urlEvidenciaFoto != null
-                                          ? const Icon(
-                                              Icons.image,
-                                              color: AppTheme.primaryBlue,
-                                            )
-                                          : null,
-                                    ),
-                                  );
-                                },
-                              ),
+                      DropdownButtonFormField<String>(
+                        initialValue: _estadoPropuesta,
+                        decoration: const InputDecoration(
+                          labelText: 'Estado de la Propuesta',
+                          helperText: 'Estado actual de la propuesta de nueva cámara',
+                        ),
+                        items: ['pendiente', 'en_revision', 'aprobada', 'rechazada']
+                            .map(
+                              (e) => DropdownMenuItem(value: e, child: Text(e.toUpperCase())),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => _estadoPropuesta = val),
                       ),
-                      const Divider(color: AppTheme.borderLight),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.camera_alt,
-                              color: AppTheme.primaryBlue,
-                            ),
-                            onPressed: _pickImage,
-                          ),
-                          Expanded(
-                            child: TextField(
-                              controller: _reporteObservacionController,
-                              decoration: const InputDecoration(
-                                hintText: 'Escribir observación/reporte...',
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 10,
-                                ),
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.send,
-                              color: AppTheme.primaryBlue,
-                            ),
-                            onPressed: _submitReporte,
-                          ),
-                        ],
-                      ),
+                      const SizedBox(height: 12),
                       if (_selectedImage != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.check_circle,
-                                color: AppTheme.successGreen,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 4),
-                              const Text(
-                                'Foto capturada',
-                                style: TextStyle(
-                                  color: AppTheme.successGreen,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const Spacer(),
-                              GestureDetector(
-                                onTap: () =>
-                                    setState(() => _selectedImage = null),
-                                child: const Text(
-                                  'Eliminar',
-                                  style: TextStyle(
-                                    color: AppTheme.dangerRed,
-                                    fontSize: 12,
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              children: [
+                                const Icon(Icons.image, size: 48, color: AppTheme.primaryBlue),
+                                const SizedBox(height: 8),
+                                const Text('Evidencia capturada'),
+                                const SizedBox(height: 8),
+                                ElevatedButton.icon(
+                                  onPressed: () => setState(() => _selectedImage = null),
+                                  icon: const Icon(Icons.delete),
+                                  label: const Text('Eliminar'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.dangerRed,
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
+                          ),
+                        )
+                      else
+                        Card(
+                          child: ListTile(
+                            leading: const Icon(Icons.camera_alt, color: AppTheme.primaryBlue),
+                            title: const Text('Agregar evidencia fotográfica'),
+                            subtitle: const Text('Foto del sitio propuesto'),
+                            onTap: _pickImage,
                           ),
                         ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isSaving ? null : _saveChanges,
+                          child: _isSaving
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : const Text('Guardar Propuesta'),
+                        ),
+                      ),
                     ],
                   ),
+                ),
               ],
             ),
           ),
