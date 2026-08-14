@@ -1,29 +1,22 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/punto_camara.dart';
+import '../models/punto_fibra_optica.dart';
 
-class PointsProvider extends ChangeNotifier {
+class FibraProvider extends ChangeNotifier {
   final SupabaseClient _supabase = Supabase.instance.client;
-  List<PuntoCamara> _puntos = [];
-  PuntoCamara? _selectedPunto;
+  List<PuntoFibraOptica> _puntos = [];
   bool _isLoading = false;
   String? _errorMessage;
   StreamSubscription<List<Map<String, dynamic>>>? _realtimeSubscription;
   StreamSubscription<AuthState>? _authSubscription;
   final bool enableRealtime;
 
-  List<PuntoCamara> get puntos => _puntos;
-  List<PuntoCamara> get puntosExistentes =>
-      _puntos.where((p) => p.tipoPunto == 'existente').toList();
-  List<PuntoCamara> get puntosPropuesta =>
-      _puntos.where((p) => p.tipoPunto == 'propuesta_mejora').toList();
-
-  PuntoCamara? get selectedPunto => _selectedPunto;
+  List<PuntoFibraOptica> get puntos => _puntos;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  PointsProvider({this.enableRealtime = true}) {
+  FibraProvider({this.enableRealtime = true}) {
     fetchPuntos();
     if (enableRealtime) {
       _bindRealtimeToAuth();
@@ -37,36 +30,34 @@ class PointsProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  void selectPunto(PuntoCamara? punto) {
-    _selectedPunto = punto;
-    notifyListeners();
-  }
-
   Future<void> fetchPuntos() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // Execute query to select points with PostGIS ST_AsGeoJSON
-      final res = await _supabase.rpc('get_puntos_camara_geojson').catchError((
+      final res = await _supabase.rpc('get_puntos_fibra_geojson').catchError((
         _,
       ) async {
-        // Fallback to normal select if RPC isn't deployed yet
-        return await _supabase.from('puntos_camara').select('*');
+        return await _supabase.from('puntos_fibra_optica').select('*');
       });
 
       if (res is List) {
         _puntos = res
-            .map((item) => PuntoCamara.fromMap(item as Map<String, dynamic>))
+            .map(
+              (item) => PuntoFibraOptica.fromMap(item as Map<String, dynamic>),
+            )
             .toList();
       }
     } catch (e) {
-      // Try direct select fallback
       try {
-        final fallbackRes = await _supabase.from('puntos_camara').select('*');
+        final fallbackRes = await _supabase
+            .from('puntos_fibra_optica')
+            .select('*');
         _puntos = (fallbackRes as List)
-            .map((item) => PuntoCamara.fromMap(item as Map<String, dynamic>))
+            .map(
+              (item) => PuntoFibraOptica.fromMap(item as Map<String, dynamic>),
+            )
             .toList();
       } catch (err) {
         _errorMessage = err.toString();
@@ -96,30 +87,32 @@ class PointsProvider extends ChangeNotifier {
   void _subscribeRealtime() {
     _realtimeSubscription?.cancel();
     _realtimeSubscription = _supabase
-        .from('puntos_camara')
+        .from('puntos_fibra_optica')
         .stream(primaryKey: ['id'])
         .listen(
           (List<Map<String, dynamic>> data) {
             if (data.isNotEmpty) fetchPuntos();
           },
-          onError: (Object error, StackTrace stackTrace) {
-            debugPrint('PointsProvider: Realtime error: $error');
+          onError: (Object error) {
+            debugPrint('FibraProvider: Realtime error: $error');
             _realtimeSubscription?.cancel();
             _realtimeSubscription = null;
           },
         );
   }
 
-  Future<bool> updatePunto(String puntoId, Map<String, dynamic> updates) async {
+  Future<bool> crearPuntoFibra({
+    required double lat,
+    required double lon,
+    required Map<String, dynamic> data,
+  }) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
-      final data = {
-        ...updates,
-        'actualizado_por': userId,
-        'actualizado_en': DateTime.now().toIso8601String(),
-      };
-
-      await _supabase.from('puntos_camara').update(data).eq('id', puntoId);
+      await _supabase.from('puntos_fibra_optica').insert({
+        'ubicacion': 'POINT($lon $lat)',
+        'creado_por': userId,
+        ...data,
+      });
       await fetchPuntos();
       return true;
     } catch (e) {
@@ -129,22 +122,9 @@ class PointsProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> crearPuntoPropuesta({
-    required double lat,
-    required double lon,
-    required String puntoReferenciaId,
-    required Map<String, dynamic> datosAdicionales,
-  }) async {
+  Future<bool> updatePuntoFibra(String id, Map<String, dynamic> updates) async {
     try {
-      final userId = _supabase.auth.currentUser?.id;
-      await _supabase.from('puntos_camara').insert({
-        'ubicacion': 'POINT($lon $lat)',
-        'tipo_punto': 'propuesta_mejora',
-        'punto_referencia_id': puntoReferenciaId,
-        'actualizado_por': userId,
-        'actualizado_en': DateTime.now().toIso8601String(),
-        ...datosAdicionales,
-      });
+      await _supabase.from('puntos_fibra_optica').update(updates).eq('id', id);
       await fetchPuntos();
       return true;
     } catch (e) {

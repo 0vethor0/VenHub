@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'providers/auth_provider.dart';
+import 'providers/fibra_provider.dart';
 import 'providers/points_provider.dart';
 import 'providers/reports_provider.dart';
 import 'providers/version_update_provider.dart';
@@ -100,6 +101,7 @@ class _Ven911AppState extends State<Ven911App> {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => PointsProvider()),
+        ChangeNotifierProvider(create: (_) => FibraProvider()),
         ChangeNotifierProvider(create: (_) => ReportsProvider()),
         ChangeNotifierProvider(create: (_) => VersionUpdateProvider()..init()),
       ],

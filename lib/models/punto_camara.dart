@@ -20,6 +20,12 @@ class PuntoCamara {
   final String? flujoVehicular;
   final String? puntosCiegos;
   final String? observaciones;
+  final String? estadoPoste;
+  final bool? presenciaLuzFarol;
+  final String? fluctuacionElectrica;
+  final String? urlEvidencia;
+  final String tipoPunto; // 'existente' | 'propuesta_mejora'
+  final String? puntoReferenciaId;
   final String? actualizadoPor;
   final DateTime? actualizadoEn;
 
@@ -45,6 +51,12 @@ class PuntoCamara {
     this.flujoVehicular,
     this.puntosCiegos,
     this.observaciones,
+    this.estadoPoste,
+    this.presenciaLuzFarol,
+    this.fluctuacionElectrica,
+    this.urlEvidencia,
+    this.tipoPunto = 'existente',
+    this.puntoReferenciaId,
     this.actualizadoPor,
     this.actualizadoEn,
   });
@@ -102,6 +114,12 @@ class PuntoCamara {
       flujoVehicular: map['flujo_vehicular'],
       puntosCiegos: map['puntos_ciegos'],
       observaciones: map['observaciones'],
+      estadoPoste: map['estado_poste'],
+      presenciaLuzFarol: map['presencia_luz_farol'],
+      fluctuacionElectrica: map['fluctuacion_electrica'],
+      urlEvidencia: map['url_evidencia'],
+      tipoPunto: map['tipo_punto'] ?? 'existente',
+      puntoReferenciaId: map['punto_referencia_id']?.toString(),
       actualizadoPor: map['actualizado_por'],
       actualizadoEn: map['actualizado_en'] != null
           ? DateTime.tryParse(map['actualizado_en'])
@@ -130,6 +148,12 @@ class PuntoCamara {
       'flujo_vehicular': flujoVehicular,
       'puntos_ciegos': puntosCiegos,
       'observaciones': observaciones,
+      'estado_poste': estadoPoste,
+      'presencia_luz_farol': presenciaLuzFarol,
+      'fluctuacion_electrica': fluctuacionElectrica,
+      'url_evidencia': urlEvidencia,
+      'tipo_punto': tipoPunto,
+      'punto_referencia_id': puntoReferenciaId,
       'actualizado_por': actualizadoPor,
       'actualizado_en': DateTime.now().toIso8601String(),
     };

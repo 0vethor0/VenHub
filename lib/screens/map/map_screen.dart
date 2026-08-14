@@ -3,8 +3,11 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../../models/punto_camara.dart';
+import '../../models/punto_fibra_optica.dart';
+import '../../providers/fibra_provider.dart';
 import '../../providers/points_provider.dart';
 import '../../theme/app_theme.dart';
+import 'widgets/fibra_form_modal.dart';
 import 'widgets/point_form_modal.dart';
 
 class MapScreen extends StatefulWidget {
@@ -19,6 +22,7 @@ class _MapScreenState extends State<MapScreen> {
   String _searchQuery = '';
   bool _filterEnergiaOnly = false;
   bool _filterFibraOnly = false;
+  bool _isEditMode = false;
 
   final LatLng _initialCenter = const LatLng(10.339, -68.735);
 
@@ -31,17 +35,40 @@ class _MapScreenState extends State<MapScreen> {
     return AppTheme.dangerRed;
   }
 
+  void _handleMapTapForNewPoint(TapPosition _, LatLng point) {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => _NewPointTypeSheet(point: point),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final pointsProvider = Provider.of<PointsProvider>(context);
 
-    final filteredPuntos = pointsProvider.puntos.where((p) {
+    final filteredExistentes = pointsProvider.puntosExistentes.where((p) {
       final matchesSearch =
           _searchQuery.isEmpty ||
           p.nombre.toLowerCase().contains(_searchQuery.toLowerCase());
       final matchesEnergia = !_filterEnergiaOnly || p.energiaElectrica;
       final matchesFibra = !_filterFibraOnly || p.fibraOptica;
       return matchesSearch && matchesEnergia && matchesFibra;
+    }).toList();
+
+    final filteredPropuestas = pointsProvider.puntosPropuesta.where((p) {
+      final matchesSearch =
+          _searchQuery.isEmpty ||
+          p.nombre.toLowerCase().contains(_searchQuery.toLowerCase());
+      return matchesSearch;
+    }).toList();
+
+    final fibraProvider = Provider.of<FibraProvider>(context);
+    final filteredFibra = fibraProvider.puntos.where((p) {
+      final matchesSearch =
+          _searchQuery.isEmpty ||
+          (p.direccion?.toLowerCase().contains(_searchQuery.toLowerCase()) ??
+              false);
+      return matchesSearch;
     }).toList();
 
     return Scaffold(
@@ -56,6 +83,7 @@ class _MapScreenState extends State<MapScreen> {
             options: MapOptions(
               initialCenter: _initialCenter,
               initialZoom: 13.0,
+              onTap: _isEditMode ? _handleMapTapForNewPoint : null,
             ),
             children: [
               TileLayer(
@@ -63,7 +91,7 @@ class _MapScreenState extends State<MapScreen> {
                 userAgentPackageName: 'com.ven911.app',
               ),
               MarkerLayer(
-                markers: filteredPuntos.map((punto) {
+                markers: filteredExistentes.map((punto) {
                   final color = _getMarkerColor(punto);
                   return Marker(
                     width: 40,
@@ -92,6 +120,100 @@ class _MapScreenState extends State<MapScreen> {
                         ),
                         child: const Icon(
                           Icons.videocam,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              MarkerLayer(
+                markers: filteredPropuestas.map((punto) {
+                  return Marker(
+                    width: 40,
+                    height: 40,
+                    point: LatLng(punto.latitud, punto.longitud),
+                    child: GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (_) => PointFormModal(punto: punto),
+                        );
+                      },
+                      child: Transform.rotate(
+                        angle: 0.785398, // 45 degrees in radians
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppTheme.warningYellow,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: Transform.rotate(
+                            angle: -0.785398,
+                            child: const Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Icon(
+                                  Icons.videocam,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  child: Icon(
+                                    Icons.arrow_upward,
+                                    color: Colors.white,
+                                    size: 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              MarkerLayer(
+                markers: filteredFibra.map((punto) {
+                  return Marker(
+                    width: 40,
+                    height: 40,
+                    point: LatLng(punto.latitud, punto.longitud),
+                    child: GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (_) => FibraFormModal(punto: punto),
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryBlue,
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.circular(4),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.settings_input_component,
                           color: Colors.white,
                           size: 20,
                         ),
@@ -157,7 +279,7 @@ class _MapScreenState extends State<MapScreen> {
                           const SizedBox(width: 8),
                           Chip(
                             label: Text(
-                              'Puntos: ${filteredPuntos.length}',
+                              'Puntos: ${filteredExistentes.length + filteredPropuestas.length + filteredFibra.length}',
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -179,6 +301,18 @@ class _MapScreenState extends State<MapScreen> {
             child: Column(
               children: [
                 FloatingActionButton.small(
+                  heroTag: 'edit_mode_btn',
+                  backgroundColor: _isEditMode
+                      ? AppTheme.warningYellow
+                      : Colors.white,
+                  child: Icon(
+                    _isEditMode ? Icons.edit_off : Icons.edit_location_alt,
+                    color: _isEditMode ? Colors.white : AppTheme.primaryBlue,
+                  ),
+                  onPressed: () => setState(() => _isEditMode = !_isEditMode),
+                ),
+                const SizedBox(height: 8),
+                FloatingActionButton.small(
                   heroTag: 'refresh_btn',
                   backgroundColor: Colors.white,
                   child: const Icon(Icons.refresh, color: AppTheme.primaryBlue),
@@ -198,4 +332,124 @@ class _MapScreenState extends State<MapScreen> {
       ),
     );
   }
+}
+
+class _NewPointTypeSheet extends StatelessWidget {
+  final LatLng point;
+
+  const _NewPointTypeSheet({required this.point});
+
+  @override
+  Widget build(BuildContext context) {
+    final pointsProvider = Provider.of<PointsProvider>(context, listen: false);
+    final nearest = _nearestCamara(point, pointsProvider.puntosExistentes);
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Nuevo punto de interés',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textDark,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ListTile(
+            leading: Transform.rotate(
+              angle: 0.785398,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.warningYellow,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: Transform.rotate(
+                  angle: -0.785398,
+                  child: const Icon(Icons.videocam, color: Colors.white),
+                ),
+              ),
+            ),
+            title: const Text('Propuesta de mejora de cámara'),
+            subtitle: Text(
+              nearest != null
+                  ? 'Sugerencia: Mejora a ${nearest.nombre}'
+                  : 'Sin cámara cercana identificada',
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => PointFormModal(
+                  punto: PuntoCamara(
+                    id: '', // New point
+                    nombre: 'Propuesta: ${nearest?.nombre ?? "Nueva"}',
+                    latitud: point.latitude,
+                    longitud: point.longitude,
+                    tipoPunto: 'propuesta_mejora',
+                    puntoReferenciaId: nearest?.id,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryBlue,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: const Icon(
+                Icons.settings_input_component,
+                color: Colors.white,
+              ),
+            ),
+            title: const Text('Punto de Fibra Óptica'),
+            subtitle: const Text('Azul — Nodo o reserva de fibra'),
+            onTap: () {
+              Navigator.pop(context);
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => FibraFormModal(
+                  punto: PuntoFibraOptica(
+                    id: '',
+                    latitud: point.latitude,
+                    longitud: point.longitude,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  PuntoCamara? _nearestCamara(LatLng point, List<PuntoCamara> puntos) {
+    return nearestCamara(point, puntos);
+  }
+}
+
+PuntoCamara? nearestCamara(LatLng point, List<PuntoCamara> puntos) {
+  const dist = Distance();
+  PuntoCamara? nearest;
+  double best = double.infinity;
+  for (final p in puntos) {
+    final d = dist(point, LatLng(p.latitud, p.longitud));
+    if (d < best) {
+      best = d;
+      nearest = p;
+    }
+  }
+  return nearest;
 }
