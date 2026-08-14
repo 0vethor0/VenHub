@@ -40,14 +40,49 @@ class _MapScreenState extends State<MapScreen> {
     return AppTheme.dangerRed;
   }
 
-  void _handleMapTapForNewPoint(TapPosition _, LatLng point) {
-    showModalBottomSheet(
-      context: context,
-      builder: (_) => _NewPointTypeSheet(point: point),
+  void _handleMapTap(TapPosition _, LatLng point) {
+    if (_isEditMode && _draggingPointId != null) {
+      _placeDraggingPoint(point);
+      return;
+    }
+    if (_isEditMode) {
+      showModalBottomSheet(
+        context: context,
+        builder: (_) => _NewPointTypeSheet(point: point),
+      );
+    }
+  }
+
+  void _startDragging({
+    required String id,
+    required bool isPropuesta,
+    required bool isFibra,
+  }) {
+    setState(() {
+      _draggingPointId = id;
+      _isDraggingPropuesta = isPropuesta;
+      _isDraggingFibra = isFibra;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Mantén el modo edición. Toca el mapa para colocar el punto en la nueva ubicación.',
+        ),
+        duration: Duration(seconds: 3),
+      ),
     );
   }
 
-  void _handleMapLongPress(TapPosition _, LatLng point) async {
+  void _cancelDragging() {
+    if (_draggingPointId == null) return;
+    setState(() {
+      _draggingPointId = null;
+      _isDraggingPropuesta = false;
+      _isDraggingFibra = false;
+    });
+  }
+
+  Future<void> _placeDraggingPoint(LatLng point) async {
     if (_draggingPointId == null) return;
 
     if (!mounted) return;
@@ -107,7 +142,8 @@ class _MapScreenState extends State<MapScreen> {
       final matchesSearch =
           _searchQuery.isEmpty ||
           p.nombre.toLowerCase().contains(_searchQuery.toLowerCase());
-      return matchesSearch;
+      final validCoordinates = !(p.latitud == 0.0 && p.longitud == 0.0);
+      return matchesSearch && validCoordinates;
     }).toList();
 
     final fibraProvider = Provider.of<FibraProvider>(context);
@@ -131,12 +167,7 @@ class _MapScreenState extends State<MapScreen> {
             options: MapOptions(
               initialCenter: _initialCenter,
               initialZoom: 13.0,
-              onTap: _isEditMode && _draggingPointId == null
-                  ? _handleMapTapForNewPoint
-                  : null,
-              onLongPress: _isEditMode && _draggingPointId != null
-                  ? _handleMapLongPress
-                  : null,
+              onTap: _isEditMode ? _handleMapTap : null,
             ),
             children: [
               TileLayer(
@@ -189,6 +220,10 @@ class _MapScreenState extends State<MapScreen> {
                     point: LatLng(propuesta.latitud, propuesta.longitud),
                     child: GestureDetector(
                       onTap: () {
+                        if (_draggingPointId == propuesta.id) {
+                          _cancelDragging();
+                          return;
+                        }
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
@@ -196,22 +231,13 @@ class _MapScreenState extends State<MapScreen> {
                               PropuestaFormModal(propuesta: propuesta),
                         );
                       },
-                      onLongPressStart: _isEditMode
-                          ? (details) {
-                              setState(() {
-                                _draggingPointId = propuesta.id;
-                                _isDraggingPropuesta = true;
-                              });
-                            }
-                          : null,
-                      onLongPressEnd: _isEditMode
-                          ? (details) async {
-                              if (_draggingPointId == propuesta.id) {
-                                setState(() {
-                                  _draggingPointId = null;
-                                  _isDraggingPropuesta = false;
-                                });
-                              }
+                      onLongPress: _isEditMode
+                          ? () {
+                              _startDragging(
+                                id: propuesta.id,
+                                isPropuesta: true,
+                                isFibra: false,
+                              );
                             }
                           : null,
                       child: Container(
@@ -266,28 +292,23 @@ class _MapScreenState extends State<MapScreen> {
                     point: LatLng(punto.latitud, punto.longitud),
                     child: GestureDetector(
                       onTap: () {
+                        if (_draggingPointId == punto.id) {
+                          _cancelDragging();
+                          return;
+                        }
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
                           builder: (_) => FibraFormModal(punto: punto),
                         );
                       },
-                      onLongPressStart: _isEditMode
-                          ? (details) {
-                              setState(() {
-                                _draggingPointId = punto.id;
-                                _isDraggingFibra = true;
-                              });
-                            }
-                          : null,
-                      onLongPressEnd: _isEditMode
-                          ? (details) async {
-                              if (_draggingPointId == punto.id) {
-                                setState(() {
-                                  _draggingPointId = null;
-                                  _isDraggingFibra = false;
-                                });
-                              }
+                      onLongPress: _isEditMode
+                          ? () {
+                              _startDragging(
+                                id: punto.id,
+                                isPropuesta: false,
+                                isFibra: true,
+                              );
                             }
                           : null,
                       child: Container(
@@ -416,7 +437,16 @@ class _MapScreenState extends State<MapScreen> {
                     _isEditMode ? Icons.edit_off : Icons.edit_location_alt,
                     color: _isEditMode ? Colors.white : AppTheme.primaryBlue,
                   ),
-                  onPressed: () => setState(() => _isEditMode = !_isEditMode),
+                  onPressed: () {
+                    setState(() {
+                      _isEditMode = !_isEditMode;
+                      if (!_isEditMode) {
+                        _draggingPointId = null;
+                        _isDraggingPropuesta = false;
+                        _isDraggingFibra = false;
+                      }
+                    });
+                  },
                 ),
                 const SizedBox(height: 8),
                 FloatingActionButton.small(

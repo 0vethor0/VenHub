@@ -96,13 +96,31 @@ class PointsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final res = await _supabase.from('propuesta_puntos_camara').select('*');
+      // Try RPC with GeoJSON first
+      final res = await _supabase
+          .rpc('get_propuesta_puntos_camara_geojson')
+          .catchError((_) async {
+            // Fallback to normal select if RPC isn't deployed yet
+            return await _supabase.from('propuesta_puntos_camara').select('*');
+          });
 
-      _propuestas = (res as List)
-          .map((item) => PropuestaPuntoCamara.fromMap(item))
-          .toList();
+      if (res is List) {
+        _propuestas = res
+            .map((item) => PropuestaPuntoCamara.fromMap(item))
+            .toList();
+      }
     } catch (e) {
-      _errorMessage = e.toString();
+      // Try direct select fallback
+      try {
+        final fallbackRes = await _supabase
+            .from('propuesta_puntos_camara')
+            .select('*');
+        _propuestas = (fallbackRes as List)
+            .map((item) => PropuestaPuntoCamara.fromMap(item))
+            .toList();
+      } catch (err) {
+        _errorMessage = err.toString();
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -207,7 +225,21 @@ class PointsProvider extends ChangeNotifier {
         ...datosAdicionales,
       };
 
-      await _supabase.from('propuesta_puntos_camara').insert(insertData);
+      final inserted = await _supabase
+          .from('propuesta_puntos_camara')
+          .insert(insertData)
+          .select()
+          .maybeSingle();
+
+      if (inserted != null) {
+        final map = Map<String, dynamic>.from(inserted);
+        map['latitud'] = lat;
+        map['longitud'] = lon;
+        final newPropuesta = PropuestaPuntoCamara.fromMap(map);
+        _propuestas.add(newPropuesta);
+        notifyListeners();
+      }
+
       await fetchPropuestas();
       return true;
     } catch (e) {

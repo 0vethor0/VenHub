@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class PropuestaPuntoCamara {
   final String id;
   final String nombre;
@@ -73,16 +75,28 @@ class PropuestaPuntoCamara {
         final coords = u['coordinates'] as List;
         lon = (coords[0] as num).toDouble();
         lat = (coords[1] as num).toDouble();
-      } else if (u is String && u.startsWith('POINT')) {
-        // WKT parse format POINT(lon lat)
-        final clean = u.replaceAll('POINT(', '').replaceAll(')', '').trim();
-        final parts = clean.split(' ');
-        if (parts.length >= 2) {
-          lon = double.tryParse(parts[0]) ?? 0.0;
-          lat = double.tryParse(parts[1]) ?? 0.0;
+      } else if (u is String) {
+        if (u.startsWith('POINT')) {
+          // WKT parse format POINT(lon lat)
+          final clean = u.replaceAll('POINT(', '').replaceAll(')', '').trim();
+          final parts = clean.split(' ');
+          if (parts.length >= 2) {
+            lon = double.tryParse(parts[0]) ?? 0.0;
+            lat = double.tryParse(parts[1]) ?? 0.0;
+          }
+        } else if (u.startsWith('{')) {
+          // GeoJSON as string
+          final decoded = _tryDecodeGeoJson(u);
+          if (decoded != null) {
+            lon = decoded.$1;
+            lat = decoded.$2;
+          }
         }
       }
-    } else {
+    }
+
+    // Fallback to column coordinates if still 0,0
+    if (lat == 0.0 && lon == 0.0) {
       lat =
           (map['latitud'] as num?)?.toDouble() ??
           (map['lat'] as num?)?.toDouble() ??
@@ -159,4 +173,15 @@ class PropuestaPuntoCamara {
       'actualizado_en': DateTime.now().toIso8601String(),
     };
   }
+}
+
+(double, double)? _tryDecodeGeoJson(String raw) {
+  final decoded = jsonDecode(raw);
+  if (decoded is Map && decoded['coordinates'] is List) {
+    final coords = decoded['coordinates'] as List;
+    if (coords.length >= 2) {
+      return ((coords[0] as num).toDouble(), (coords[1] as num).toDouble());
+    }
+  }
+  return null;
 }

@@ -48,7 +48,6 @@ app.*.map.json
 /docs
 /supabase
 
-
 # Environment variables
 .env
 .env.*
