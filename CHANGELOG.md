@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/0vethor0/VenHub/compare/v1.7.0...v1.8.0) (2026-08-14)
+
+
+### Features
+
+* **map:** corregir visualización y arrastre de propuestas y puntos en mapa ([85eae86](https://github.com/0vethor0/VenHub/commit/85eae86b56e6cf674bbc2f7b9b62d419336cc094))
+
 ## [1.7.0](https://github.com/0vethor0/VenHub/compare/v1.6.0...v1.7.0) (2026-08-14)
 
 
