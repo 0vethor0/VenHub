@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.0](https://github.com/0vethor0/VenHub/compare/v1.6.0...v1.7.0) (2026-08-14)
+
+
+### Features
+
+* **map:** añadir gestión y edición interactiva de propuestas y puntos ([d0d3992](https://github.com/0vethor0/VenHub/commit/d0d399238f5f856407e3539659caf2fae4c273aa))
+
+
+### Bug Fixes
+
+* **format:** formateo del codigo ([5c0bfb3](https://github.com/0vethor0/VenHub/commit/5c0bfb3a251c397eb5d315052b838b1c94853c04))
+
 ## [1.6.0](https://github.com/0vethor0/VenHub/compare/v1.5.0...v1.6.0) (2026-08-14)
 
 
