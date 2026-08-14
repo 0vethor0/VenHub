@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/0vethor0/VenHub/compare/v1.8.0...v1.9.0) (2026-08-14)
+
+
+### Features
+
+* **map:** mostrar ubicación GPS del dispositivo en tiempo real ([0791f2d](https://github.com/0vethor0/VenHub/commit/0791f2de1ce1aed435c12852a1ded3a943e52525))
+
 ## [1.8.0](https://github.com/0vethor0/VenHub/compare/v1.7.0...v1.8.0) (2026-08-14)
 
 
