@@ -77,5 +77,7 @@
 	</array>
 	<key>NSMotionUsageDescription</key>
 	<string>Necesitamos acceso al sensor de movimiento para calcular la altura del poste con la cámara del teléfono.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Necesitamos tu ubicación para mostrarla en el mapa de campo.</string>
 </dict>
 </plist>

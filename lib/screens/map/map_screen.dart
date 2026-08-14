@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../../models/punto_camara.dart';
@@ -28,8 +30,64 @@ class _MapScreenState extends State<MapScreen> {
   String? _draggingPointId;
   bool _isDraggingPropuesta = false;
   bool _isDraggingFibra = false;
+  LatLng? _currentLocation;
+  double? _currentHeading;
+  StreamSubscription<Position>? _positionSub;
+  bool _followMe = false;
 
   final LatLng _initialCenter = const LatLng(10.339, -68.735);
+
+  @override
+  void initState() {
+    super.initState();
+    _initLocation();
+  }
+
+  Future<void> _initLocation() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return;
+      }
+    }
+
+    try {
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      if (!mounted) return;
+      setState(() {
+        _currentLocation = LatLng(pos.latitude, pos.longitude);
+        _currentHeading = pos.heading >= 0 ? pos.heading : null;
+      });
+    } catch (_) {}
+
+    _positionSub?.cancel();
+    _positionSub =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 5,
+          ),
+        ).listen((pos) {
+          if (!mounted) return;
+          final latLng = LatLng(pos.latitude, pos.longitude);
+          setState(() {
+            _currentLocation = latLng;
+            _currentHeading = pos.heading >= 0 ? pos.heading : null;
+          });
+          if (_followMe) {
+            _mapController.move(latLng, _mapController.camera.zoom);
+          }
+        });
+  }
 
   Color _getMarkerColor(PuntoCamara punto) {
     if (punto.energiaElectrica && punto.fibraOptica) {
@@ -123,6 +181,12 @@ class _MapScreenState extends State<MapScreen> {
         const SnackBar(content: Text('Error al actualizar ubicación')),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _positionSub?.cancel();
+    super.dispose();
   }
 
   @override
@@ -337,6 +401,38 @@ class _MapScreenState extends State<MapScreen> {
                   );
                 }).toList(),
               ),
+              if (_currentLocation != null)
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      width: 48,
+                      height: 48,
+                      point: _currentLocation!,
+                      child: Transform.rotate(
+                        angle: ((_currentHeading ?? 0) * pi / 180),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withValues(alpha: 0.9),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 3),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.blue.withValues(alpha: 0.4),
+                                blurRadius: 8,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.navigation,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
           Positioned(
@@ -456,10 +552,29 @@ class _MapScreenState extends State<MapScreen> {
                   onPressed: () => pointsProvider.fetchPuntos(),
                 ),
                 const SizedBox(height: 8),
+                FloatingActionButton.small(
+                  heroTag: 'my_location_btn',
+                  backgroundColor: _followMe
+                      ? AppTheme.primaryBlue
+                      : Colors.white,
+                  onPressed: () {
+                    if (_currentLocation == null) return;
+                    setState(() => _followMe = !_followMe);
+                    _mapController.move(_currentLocation!, 16.0);
+                  },
+                  child: Icon(
+                    Icons.my_location,
+                    color: _followMe ? Colors.white : AppTheme.primaryBlue,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 FloatingActionButton(
                   heroTag: 'recenter_btn',
                   backgroundColor: AppTheme.primaryBlue,
-                  child: const Icon(Icons.my_location, color: Colors.white),
+                  child: const Icon(
+                    Icons.center_focus_strong,
+                    color: Colors.white,
+                  ),
                   onPressed: () => _mapController.move(_initialCenter, 13.0),
                 ),
               ],
