@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/0vethor0/VenHub/compare/v1.5.0...v1.6.0) (2026-08-14)
+
+
+### Features
+
+* **mapa:** agregar calculadora de altura de postes mediante sensor de inclinación ([2258db9](https://github.com/0vethor0/VenHub/commit/2258db9b499f5c4bfa669fb30327ccb3d9ee488c))
+
 ## [1.5.0](https://github.com/0vethor0/VenHub/compare/v1.4.1...v1.5.0) (2026-08-14)
 
 
