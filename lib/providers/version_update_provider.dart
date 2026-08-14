@@ -9,8 +9,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:android_intent_plus/android_intent.dart';
-import 'package:android_intent_plus/flag.dart';
 import '../main.dart' show navigatorKey;
 import '../screens/update_dialog.dart';
 
@@ -262,18 +260,22 @@ class VersionUpdateProvider with ChangeNotifier {
 
           debugPrint('VersionUpdate: URI generado: $uri');
 
-          final intent = AndroidIntent(
-            action: 'action_view',
-            data: uri,
-            type: 'application/vnd.android.package-archive',
-            flags: <int>[
-              Flag.FLAG_ACTIVITY_NEW_TASK,
-              Flag.FLAG_GRANT_READ_URI_PERMISSION,
-            ],
+          final installResult = await _installChannel.invokeMethod<String>(
+            'installApk',
+            {'uri': uri},
           );
-          await intent.launch();
 
-          _showInstallationStarted();
+          debugPrint('VersionUpdate: Resultado de instalación: $installResult');
+
+          if (installResult == 'CANCELLED') {
+            _errorMessage = 'Instalación cancelada por el usuario';
+            notifyListeners();
+          } else if (installResult != 'SUCCESS') {
+            _errorMessage = 'Error en la instalación: $installResult';
+            notifyListeners();
+          } else {
+            _showInstallationStarted();
+          }
         } else {
           await OpenFile.open(apkFile.path);
         }
