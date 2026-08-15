@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/0vethor0/VenHub/compare/v1.10.1...v1.11.0) (2026-08-15)
+
+
+### Features
+
+* **map:** regla de medición y cálculo guiado ([7436d72](https://github.com/0vethor0/VenHub/commit/7436d7261856016fa9ba377b17f64acd8565875e))
+
 ## [1.10.1](https://github.com/0vethor0/VenHub/compare/v1.10.0...v1.10.1) (2026-08-15)
 
 
