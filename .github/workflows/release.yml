@@ -96,6 +96,19 @@ jobs:
         run: |
           echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
 
+      - name: Generar key.properties para firma de release
+        env:
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          cat > android/key.properties <<EOF
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=upload-keystore.jks
+          EOF
+
       - name: Compilar APK de producción (release)
         env:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -104,6 +117,8 @@ jobs:
         run: |
           flutter build apk --release --build-name=${{ steps.version.outputs.version_nombre }} --build-number=${{ steps.version.outputs.version_codigo }}
 
+      - name: Verificar huella SHA-1 del APK firmado
+        run: keytool -printcert -jarfile build/app/outputs/flutter-apk/app-release.apk
       # El APK se genera en build/app/outputs/flutter-apk/app-release.apk
       - name: Copiar APK con nombre de versión
         run: |
