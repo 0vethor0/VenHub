@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.1](https://github.com/0vethor0/VenHub/compare/v1.10.0...v1.10.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* **build:** Agregue configuración de firma de las release y generación de key.properties ([7fd04ed](https://github.com/0vethor0/VenHub/commit/7fd04ed32bee59b5dc45e401682f129a1b02cf2a))
+
 ## [1.10.0](https://github.com/0vethor0/VenHub/compare/v1.9.0...v1.10.0) (2026-08-15)
 
 
