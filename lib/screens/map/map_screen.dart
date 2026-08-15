@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -30,11 +32,17 @@ class _MapScreenState extends State<MapScreen> {
   String? _draggingPointId;
   bool _isDraggingPropuesta = false;
   bool _isDraggingFibra = false;
+  bool _isMeasuring = false;
+  final List<LatLng> _measurePoints = [];
+  double? _measureDistanceMeters;
+  String? _guidedMeasureTargetId;
+  String? _guidedMeasureTargetType;
   LatLng? _currentLocation;
   double? _currentHeading;
   StreamSubscription<Position>? _positionSub;
   bool _followMe = false;
 
+  static const _distanceCalc = Distance();
   final LatLng _initialCenter = const LatLng(10.339, -68.735);
 
   @override
@@ -98,7 +106,103 @@ class _MapScreenState extends State<MapScreen> {
     return AppTheme.dangerRed;
   }
 
+  String _formatDistance(double meters) {
+    if (meters >= 1000) {
+      return '${(meters / 1000).toStringAsFixed(2)} km';
+    }
+    return '${meters.toStringAsFixed(1)} m';
+  }
+
+  void _addMeasurePoint(LatLng point) {
+    setState(() {
+      if (_measurePoints.length >= 2) {
+        _measurePoints
+          ..clear()
+          ..add(point);
+        _measureDistanceMeters = null;
+      } else {
+        _measurePoints.add(point);
+        if (_measurePoints.length == 2) {
+          _measureDistanceMeters = _distanceCalc(
+            _measurePoints[0],
+            _measurePoints[1],
+          );
+        }
+      }
+    });
+
+    if (_measurePoints.length == 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Toca el segundo punto para medir la distancia.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _toggleMeasureMode() {
+    setState(() {
+      _isMeasuring = !_isMeasuring;
+      if (_isMeasuring) {
+        _isEditMode = false;
+        _draggingPointId = null;
+        _isDraggingPropuesta = false;
+        _isDraggingFibra = false;
+      }
+      _measurePoints.clear();
+      _measureDistanceMeters = null;
+      _guidedMeasureTargetId = null;
+      _guidedMeasureTargetType = null;
+    });
+
+    if (_isMeasuring) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Modo medición: toca el mapa o un punto existente.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  void _clearMeasurement() {
+    setState(() {
+      _measurePoints.clear();
+      _measureDistanceMeters = null;
+      _guidedMeasureTargetId = null;
+      _guidedMeasureTargetType = null;
+    });
+  }
+
+  void _startGuidedMeasure(
+    LatLng from, {
+    String? targetId,
+    String? targetType,
+  }) {
+    setState(() {
+      _isMeasuring = true;
+      _isEditMode = false;
+      _measurePoints
+        ..clear()
+        ..add(from);
+      _measureDistanceMeters = null;
+      _guidedMeasureTargetId = targetId;
+      _guidedMeasureTargetType = targetType;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Toca el punto de destino para medir la distancia.'),
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
   void _handleMapTap(TapPosition _, LatLng point) {
+    if (_isMeasuring) {
+      _addMeasurePoint(point);
+      return;
+    }
     if (_isEditMode && _draggingPointId != null) {
       _placeDraggingPoint(point);
       return;
@@ -231,13 +335,25 @@ class _MapScreenState extends State<MapScreen> {
             options: MapOptions(
               initialCenter: _initialCenter,
               initialZoom: 13.0,
-              onTap: _isEditMode ? _handleMapTap : null,
+              onTap: (_isEditMode || _isMeasuring) ? _handleMapTap : null,
             ),
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.ven911.app',
               ),
+              if (_measurePoints.length >= 2)
+                PolylineLayer(
+                  polylines: [
+                    Polyline(
+                      points: _measurePoints,
+                      color: Colors.deepOrange,
+                      strokeWidth: 4,
+                      borderColor: Colors.white,
+                      borderStrokeWidth: 2,
+                    ),
+                  ],
+                ),
               MarkerLayer(
                 markers: filteredExistentes.map((punto) {
                   final color = _getMarkerColor(punto);
@@ -247,6 +363,12 @@ class _MapScreenState extends State<MapScreen> {
                     point: LatLng(punto.latitud, punto.longitud),
                     child: GestureDetector(
                       onTap: () {
+                        if (_isMeasuring) {
+                          _addMeasurePoint(
+                            LatLng(punto.latitud, punto.longitud),
+                          );
+                          return;
+                        }
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
@@ -283,17 +405,30 @@ class _MapScreenState extends State<MapScreen> {
                     height: 40,
                     point: LatLng(propuesta.latitud, propuesta.longitud),
                     child: GestureDetector(
-                      onTap: () {
+                      onTap: () async {
+                        if (_isMeasuring) {
+                          _addMeasurePoint(
+                            LatLng(propuesta.latitud, propuesta.longitud),
+                          );
+                          return;
+                        }
                         if (_draggingPointId == propuesta.id) {
                           _cancelDragging();
                           return;
                         }
-                        showModalBottomSheet(
+                        final result = await showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
                           builder: (_) =>
                               PropuestaFormModal(propuesta: propuesta),
                         );
+                        if (result is LatLng && mounted) {
+                          _startGuidedMeasure(
+                            result,
+                            targetId: propuesta.id,
+                            targetType: 'propuesta',
+                          );
+                        }
                       },
                       onLongPress: _isEditMode
                           ? () {
@@ -355,16 +490,29 @@ class _MapScreenState extends State<MapScreen> {
                     height: 40,
                     point: LatLng(punto.latitud, punto.longitud),
                     child: GestureDetector(
-                      onTap: () {
+                      onTap: () async {
+                        if (_isMeasuring) {
+                          _addMeasurePoint(
+                            LatLng(punto.latitud, punto.longitud),
+                          );
+                          return;
+                        }
                         if (_draggingPointId == punto.id) {
                           _cancelDragging();
                           return;
                         }
-                        showModalBottomSheet(
+                        final result = await showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
                           builder: (_) => FibraFormModal(punto: punto),
                         );
+                        if (result is LatLng && mounted) {
+                          _startGuidedMeasure(
+                            result,
+                            targetId: punto.id,
+                            targetType: 'fibra',
+                          );
+                        }
                       },
                       onLongPress: _isEditMode
                           ? () {
@@ -401,6 +549,60 @@ class _MapScreenState extends State<MapScreen> {
                   );
                 }).toList(),
               ),
+              if (_measurePoints.isNotEmpty)
+                MarkerLayer(
+                  markers: [
+                    ..._measurePoints.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final point = entry.value;
+                      return Marker(
+                        point: point,
+                        width: 20,
+                        height: 20,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: index == 0 ? Colors.deepOrange : Colors.red,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                        ),
+                      );
+                    }),
+                    if (_measureDistanceMeters != null &&
+                        _measurePoints.length == 2)
+                      Marker(
+                        point: LatLng(
+                          (_measurePoints[0].latitude +
+                                  _measurePoints[1].latitude) /
+                              2,
+                          (_measurePoints[0].longitude +
+                                  _measurePoints[1].longitude) /
+                              2,
+                        ),
+                        width: 120,
+                        height: 36,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.deepOrange.shade700,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _formatDistance(_measureDistanceMeters!),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               if (_currentLocation != null)
                 MarkerLayer(
                   markers: [
@@ -409,7 +611,7 @@ class _MapScreenState extends State<MapScreen> {
                       height: 48,
                       point: _currentLocation!,
                       child: Transform.rotate(
-                        angle: ((_currentHeading ?? 0) * pi / 180),
+                        angle: ((_currentHeading ?? 0) * math.pi / 180),
                         child: Container(
                           decoration: BoxDecoration(
                             color: Colors.blue.withValues(alpha: 0.9),
@@ -435,6 +637,96 @@ class _MapScreenState extends State<MapScreen> {
                 ),
             ],
           ),
+          if (_measureDistanceMeters != null)
+            Positioned(
+              bottom: 100,
+              left: 16,
+              right: 80,
+              child: Card(
+                color: Colors.deepOrange.shade700,
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.straighten, color: Colors.white),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Distancia: ${_formatDistance(_measureDistanceMeters!)}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      if (_guidedMeasureTargetId != null &&
+                          _guidedMeasureTargetType != null)
+                        TextButton(
+                          onPressed: () {
+                            setState(() => _isMeasuring = false);
+                            final pointsProvider = Provider.of<PointsProvider>(
+                              context,
+                              listen: false,
+                            );
+                            final fibraProvider = Provider.of<FibraProvider>(
+                              context,
+                              listen: false,
+                            );
+
+                            if (_guidedMeasureTargetType == 'propuesta') {
+                              final target = pointsProvider.propuestas
+                                  .firstWhere(
+                                    (p) => p.id == _guidedMeasureTargetId,
+                                    orElse: () =>
+                                        pointsProvider.propuestas.first,
+                                  );
+                              if (!mounted) return;
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                builder: (_) => PropuestaFormModal(
+                                  propuesta: target,
+                                  distanciaInicialMetros:
+                                      _measureDistanceMeters,
+                                ),
+                              );
+                            } else if (_guidedMeasureTargetType == 'fibra') {
+                              final target = fibraProvider.puntos.firstWhere(
+                                (p) => p.id == _guidedMeasureTargetId,
+                                orElse: () => fibraProvider.puntos.first,
+                              );
+                              if (!mounted) return;
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                builder: (_) => FibraFormModal(
+                                  punto: target,
+                                  distanciaInicialMetros:
+                                      _measureDistanceMeters,
+                                ),
+                              );
+                            }
+                          },
+                          child: const Text(
+                            'Rellenar campo',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        tooltip: 'Limpiar medición',
+                        onPressed: _clearMeasurement,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           Positioned(
             top: 16,
             left: 16,
@@ -525,6 +817,21 @@ class _MapScreenState extends State<MapScreen> {
             child: Column(
               children: [
                 FloatingActionButton.small(
+                  heroTag: 'measure_btn',
+                  backgroundColor: _isMeasuring
+                      ? Colors.deepOrange
+                      : Colors.white,
+                  onPressed: _toggleMeasureMode,
+                  tooltip: _isMeasuring
+                      ? 'Salir de medición'
+                      : 'Medir distancia',
+                  child: Icon(
+                    Icons.straighten,
+                    color: _isMeasuring ? Colors.white : AppTheme.primaryBlue,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                FloatingActionButton.small(
                   heroTag: 'edit_mode_btn',
                   backgroundColor: _isEditMode
                       ? AppTheme.warningYellow
@@ -536,6 +843,11 @@ class _MapScreenState extends State<MapScreen> {
                   onPressed: () {
                     setState(() {
                       _isEditMode = !_isEditMode;
+                      if (_isEditMode) {
+                        _isMeasuring = false;
+                        _measurePoints.clear();
+                        _measureDistanceMeters = null;
+                      }
                       if (!_isEditMode) {
                         _draggingPointId = null;
                         _isDraggingPropuesta = false;

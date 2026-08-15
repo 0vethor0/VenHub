@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../../../models/punto_fibra_optica.dart';
 import '../../../providers/fibra_provider.dart';
@@ -8,8 +9,13 @@ import 'height_calculator_sheet.dart';
 
 class FibraFormModal extends StatefulWidget {
   final PuntoFibraOptica punto;
+  final double? distanciaInicialMetros;
 
-  const FibraFormModal({super.key, required this.punto});
+  const FibraFormModal({
+    super.key,
+    required this.punto,
+    this.distanciaInicialMetros,
+  });
 
   @override
   State<FibraFormModal> createState() => _FibraFormModalState();
@@ -32,7 +38,10 @@ class _FibraFormModalState extends State<FibraFormModal> {
       text: widget.punto.alturaPosteMetros?.toString() ?? '',
     );
     _distanciaCamaraController = TextEditingController(
-      text: widget.punto.distanciaACamaraMetros?.toString() ?? '',
+      text:
+          (widget.distanciaInicialMetros ?? widget.punto.distanciaACamaraMetros)
+              ?.toStringAsFixed(2) ??
+          '',
     );
     _observacionesController = TextEditingController(
       text: widget.punto.observaciones,
@@ -225,12 +234,27 @@ class _FibraFormModalState extends State<FibraFormModal> {
                     onChanged: (v) => setState(() => _estadoPoste = v),
                   ),
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: _distanciaCamaraController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Distancia a cámara (m)',
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _distanciaCamaraController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Distancia a cámara (m)',
+                            helperText:
+                                'Aproximado (mapa), no requiere cinta métrica',
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.straighten),
+                        tooltip: 'Medir en el mapa',
+                        onPressed: () => Navigator.of(context).pop(
+                          LatLng(widget.punto.latitud, widget.punto.longitud),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(

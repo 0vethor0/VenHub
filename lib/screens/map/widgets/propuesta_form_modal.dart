@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../models/propuesta_punto_camara.dart';
@@ -10,8 +11,13 @@ import 'height_calculator_sheet.dart';
 
 class PropuestaFormModal extends StatefulWidget {
   final PropuestaPuntoCamara propuesta;
+  final double? distanciaInicialMetros;
 
-  const PropuestaFormModal({super.key, required this.propuesta});
+  const PropuestaFormModal({
+    super.key,
+    required this.propuesta,
+    this.distanciaInicialMetros,
+  });
 
   @override
   State<PropuestaFormModal> createState() => _PropuestaFormModalState();
@@ -56,7 +62,11 @@ class _PropuestaFormModalState extends State<PropuestaFormModal>
     );
     _fibraOptica = widget.propuesta.fibraOptica;
     _distanciaNodoController = TextEditingController(
-      text: widget.propuesta.distanciaNodoMetros?.toString() ?? '',
+      text:
+          (widget.distanciaInicialMetros ??
+                  widget.propuesta.distanciaNodoMetros)
+              ?.toStringAsFixed(2) ??
+          '',
     );
     _indiceDelictivo = widget.propuesta.indiceDelictivo;
     _tipoZona = widget.propuesta.tipoZona;
@@ -429,13 +439,31 @@ class _PropuestaFormModalState extends State<PropuestaFormModal>
                       if (_fibraOptica)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: TextField(
-                            controller: _distanciaNodoController,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Distancia al Nodo (Metros)',
-                              suffixText: 'm',
-                            ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _distanciaNodoController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Distancia al Nodo (Metros)',
+                                    suffixText: 'm',
+                                    helperText:
+                                        'Aproximado (mapa), no requiere cinta métrica',
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.straighten),
+                                tooltip: 'Medir en el mapa',
+                                onPressed: () => Navigator.of(context).pop(
+                                  LatLng(
+                                    widget.propuesta.latitud,
+                                    widget.propuesta.longitud,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       const SizedBox(height: 12),
