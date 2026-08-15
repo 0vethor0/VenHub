@@ -3,6 +3,11 @@ import 'package:provider/provider.dart';
 import '../../providers/points_provider.dart';
 import '../../theme/app_theme.dart';
 import '../map/widgets/point_form_modal.dart';
+import '../../utils/reporte_export.dart';
+import '../../models/punto_camara.dart';
+import 'report_table_preview.dart';
+import 'report_pdf_preview.dart';
+import 'report_excel_preview.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -24,6 +29,13 @@ class ReportsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Reportes de Instalación'),
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.ios_share),
+            tooltip: 'Exportar levantamiento (Excel / PDF)',
+            onPressed: () => _showExportDialog(context, pointsProvider.puntos),
+          ),
+        ],
       ),
       body: pointsProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -124,6 +136,95 @@ class ReportsScreen extends StatelessWidget {
                 );
               },
             ),
+    );
+  }
+
+  void _showExportDialog(BuildContext context, List<PuntoCamara> puntos) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Exportar / Vista previa'),
+        content: const Text('Seleccione una acción'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              final messenger = ScaffoldMessenger.of(context);
+              final excel = generarExcelLevantamiento(puntos);
+              final filename =
+                  'levantamiento_${DateTime.now().millisecondsSinceEpoch}.xlsx';
+              final path = await saveExcelFile(excel, filename);
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(
+                    path != null
+                        ? 'Excel guardado en: $path'
+                        : 'Error al guardar Excel',
+                  ),
+                ),
+              );
+            },
+            child: const Text('Exportar Excel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              final messenger = ScaffoldMessenger.of(context);
+              final doc = generarPdfLevantamiento(puntos);
+              final filename =
+                  'levantamiento_${DateTime.now().millisecondsSinceEpoch}.pdf';
+              final path = await savePdfDocument(doc, filename);
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(
+                    path != null
+                        ? 'PDF guardado en: $path'
+                        : 'Error al guardar PDF',
+                  ),
+                ),
+              );
+            },
+            child: const Text('Exportar PDF'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ReportTablePreview(puntos: puntos),
+                ),
+              );
+            },
+            child: const Text('Vista previa (Tabla)'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ReportPdfPreview(puntos: puntos),
+                ),
+              );
+            },
+            child: const Text('Vista previa (PDF)'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ReportExcelPreview(puntos: puntos),
+                ),
+              );
+            },
+            child: const Text('Vista previa (Excel)'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancelar'),
+          ),
+        ],
+      ),
     );
   }
 }
