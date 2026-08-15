@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/0vethor0/VenHub/compare/v1.9.0...v1.10.0) (2026-08-15)
+
+
+### Features
+
+* **reports:** add Excel, PDF, and table previews for installation reports ([800ffad](https://github.com/0vethor0/VenHub/commit/800ffadda8711d1c34a082a9f40ed5086cd8239d))
+
 ## [1.9.0](https://github.com/0vethor0/VenHub/compare/v1.8.0...v1.9.0) (2026-08-14)
 
 
