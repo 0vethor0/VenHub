@@ -3,15 +3,18 @@ import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'providers/auth_provider.dart';
 import 'providers/fibra_provider.dart';
+import 'providers/map_layer_provider.dart';
 import 'providers/points_provider.dart';
 import 'providers/reports_provider.dart';
 import 'providers/version_update_provider.dart';
 import 'screens/auth/update_password_screen.dart';
 import 'screens/splash_screen.dart';
+import 'services/connectivity_service.dart';
 import 'theme/app_theme.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -31,11 +34,19 @@ void main() async {
 
   await Supabase.initialize(url: supabaseUrl, publishableKey: supabaseAnonKey);
 
-  runApp(const Ven911App());
+  // NUEVO: inicializar el backend de FMTC antes de usar cualquier store.
+  await FMTCObjectBoxBackend().initialise();
+
+  // NUEVO: servicio de conectividad compartido por toda la app.
+  final connectivityService = ConnectivityService();
+  await connectivityService.init();
+
+  runApp(Ven911App(connectivityService: connectivityService));
 }
 
 class Ven911App extends StatefulWidget {
-  const Ven911App({super.key});
+  final ConnectivityService connectivityService;
+  const Ven911App({super.key, required this.connectivityService});
 
   @override
   State<Ven911App> createState() => _Ven911AppState();
@@ -104,6 +115,10 @@ class _Ven911AppState extends State<Ven911App> {
         ChangeNotifierProvider(create: (_) => FibraProvider()),
         ChangeNotifierProvider(create: (_) => ReportsProvider()),
         ChangeNotifierProvider(create: (_) => VersionUpdateProvider()..init()),
+        // NUEVO:
+        ChangeNotifierProvider(
+          create: (_) => MapLayerProvider(widget.connectivityService),
+        ),
       ],
       child: MaterialApp(
         navigatorKey: navigatorKey,

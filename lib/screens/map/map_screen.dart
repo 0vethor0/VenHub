@@ -3,18 +3,25 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import '../../models/map_layer_type.dart';
 import '../../models/punto_camara.dart';
 import '../../models/punto_fibra_optica.dart';
 import '../../models/propuesta_punto_camara.dart';
 import '../../providers/fibra_provider.dart';
+import '../../providers/map_layer_provider.dart';
 import '../../providers/points_provider.dart';
+import '../../services/site_tile_prefetch_service.dart'
+    show kEsriSateliteStoreName;
 import '../../theme/app_theme.dart';
 import 'widgets/fibra_form_modal.dart';
+import 'widgets/map_layer_sheet.dart';
 import 'widgets/point_form_modal.dart';
 import 'widgets/propuesta_form_modal.dart';
+import 'widgets/site_manager_sheet.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -44,6 +51,13 @@ class _MapScreenState extends State<MapScreen> {
 
   static const _distanceCalc = Distance();
   final LatLng _initialCenter = const LatLng(10.339, -68.735);
+
+  // Cache tile provider to avoid reconstruction
+  final _satelliteTileProvider = FMTCTileProvider(
+    stores: const {
+      kEsriSateliteStoreName: BrowseStoreStrategy.readUpdateCreate,
+    },
+  );
 
   @override
   void initState() {
@@ -95,6 +109,41 @@ class _MapScreenState extends State<MapScreen> {
             _mapController.move(latLng, _mapController.camera.zoom);
           }
         });
+  }
+
+  List<Widget> _buildBaseTileLayers(MapLayerProvider mapLayerProvider) {
+    final layer = mapLayerProvider.effectiveLayer;
+    const userAgent = 'com.ven911.app';
+
+    switch (layer) {
+      case MapLayerType.calle:
+        return [
+          TileLayer(
+            urlTemplate: MapTileUrls.openStreetMap,
+            userAgentPackageName: userAgent,
+          ),
+        ];
+      case MapLayerType.satelite:
+        return [
+          TileLayer(
+            urlTemplate: MapTileUrls.esriSatelite,
+            userAgentPackageName: userAgent,
+            tileProvider: _satelliteTileProvider,
+          ),
+        ];
+      case MapLayerType.hibrido:
+        return [
+          TileLayer(
+            urlTemplate: MapTileUrls.esriSatelite,
+            userAgentPackageName: userAgent,
+            tileProvider: _satelliteTileProvider,
+          ),
+          TileLayer(
+            urlTemplate: MapTileUrls.esriReferenciaHibrida,
+            userAgentPackageName: userAgent,
+          ),
+        ];
+    }
   }
 
   Color _getMarkerColor(PuntoCamara punto) {
@@ -315,6 +364,7 @@ class _MapScreenState extends State<MapScreen> {
     }).toList();
 
     final fibraProvider = Provider.of<FibraProvider>(context);
+    final mapLayerProvider = Provider.of<MapLayerProvider>(context);
     final filteredFibra = fibraProvider.puntos.where((p) {
       final matchesSearch =
           _searchQuery.isEmpty ||
@@ -338,10 +388,7 @@ class _MapScreenState extends State<MapScreen> {
               onTap: (_isEditMode || _isMeasuring) ? _handleMapTap : null,
             ),
             children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.ven911.app',
-              ),
+              ..._buildBaseTileLayers(mapLayerProvider),
               if (_measurePoints.length >= 2)
                 PolylineLayer(
                   polylines: [
@@ -803,6 +850,19 @@ class _MapScreenState extends State<MapScreen> {
                               ),
                               backgroundColor: AppTheme.warningYellow,
                             ),
+                          const SizedBox(width: 8),
+                          if (!mapLayerProvider.isOnline)
+                            const Chip(
+                              label: Text(
+                                'Sin conexión',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              backgroundColor: AppTheme.dangerRed,
+                            ),
                         ],
                       ),
                     ),
@@ -888,6 +948,36 @@ class _MapScreenState extends State<MapScreen> {
                     color: Colors.white,
                   ),
                   onPressed: () => _mapController.move(_initialCenter, 13.0),
+                ),
+                const SizedBox(height: 8),
+                FloatingActionButton.small(
+                  heroTag: 'layers_btn',
+                  backgroundColor: Colors.white,
+                  tooltip: 'Tipo de mapa',
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (_) => const MapLayerSheet(),
+                    );
+                  },
+                  child: const Icon(Icons.layers, color: AppTheme.primaryBlue),
+                ),
+                const SizedBox(height: 8),
+                FloatingActionButton.small(
+                  heroTag: 'offline_sites_btn',
+                  backgroundColor: Colors.white,
+                  tooltip: 'Sitios sin conexión',
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (_) => const SiteManagerSheet(),
+                    );
+                  },
+                  child: const Icon(
+                    Icons.download_for_offline,
+                    color: AppTheme.primaryBlue,
+                  ),
                 ),
               ],
             ),
