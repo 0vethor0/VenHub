@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.0](https://github.com/0vethor0/VenHub/compare/v1.11.0...v1.12.0) (2026-08-16)
+
+
+### Features
+
+* **map:** Implementación: mapa satelital con Esri + precache offline por sitio ([55d14b9](https://github.com/0vethor0/VenHub/commit/55d14b9596658f5788756f95eea4ea71b34dbf60))
+
 ## [1.11.0](https://github.com/0vethor0/VenHub/compare/v1.10.1...v1.11.0) (2026-08-15)
 
 
