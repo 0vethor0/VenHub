@@ -2,11 +2,14 @@ import 'package:flutter/foundation.dart';
 import '../models/map_layer_type.dart';
 import '../models/work_site.dart';
 import '../services/connectivity_service.dart';
+import '../services/download_notification_service.dart';
 import '../services/site_tile_prefetch_service.dart';
 
 class MapLayerProvider extends ChangeNotifier {
   final ConnectivityService _connectivity;
   final SiteTilePrefetchService _prefetch = SiteTilePrefetchService();
+  final DownloadNotificationService _notifications =
+      DownloadNotificationService();
 
   MapLayerType _selectedLayer = MapLayerType.calle;
   bool _isOnline = true;
@@ -16,26 +19,29 @@ class MapLayerProvider extends ChangeNotifier {
   final Map<String, SiteDownloadProgress> _progresoPorSitio = {};
   final Set<String> _descargando = {};
 
+  // Capas ya "calentadas" en esta sesión (FMTC/red ya inicializados para
+  // ellas al menos una vez) — se usa para mostrar un overlay de carga
+  // solo la primera vez que se selecciona cada capa, que es cuando
+  // ocurre el costo de arranque de FMTC.
+  final Set<MapLayerType> _warmedLayers = {MapLayerType.calle};
+
   MapLayerProvider(this._connectivity) {
     _isOnline = _connectivity.isOnline;
     _connectivity.onStatusChange.listen(_onConnectivityChanged);
     _cargarEstadoDescargas();
+    _notifications.init();
   }
 
   MapLayerType get selectedLayer => _selectedLayer;
   bool get isOnline => _isOnline;
   bool get isDescargando => _descargando.isNotEmpty;
 
-  /// Capa que realmente se debe pintar, considerando conectividad.
-  ///
-  /// Heurística simple para esta primera versión: si el usuario eligió
-  /// satelital/híbrido, no hay red, Y no hay NINGÚN sitio descargado,
-  /// se cae a calle (para no mostrar un mapa satelital roto/en blanco).
-  /// Si sí hay al menos un sitio descargado, se deja la capa elegida —
-  /// FMTC sirve los tiles guardados donde existan y no carga nada donde
-  /// no. Una versión más avanzada podría comprobar si el viewport
-  /// actual cae dentro del radio de un sitio descargado específico; se
-  /// deja como mejora futura para no sobre-construir la primera versión.
+  bool isLayerWarm(MapLayerType layer) => _warmedLayers.contains(layer);
+
+  void markLayerWarm(MapLayerType layer) {
+    if (_warmedLayers.add(layer)) notifyListeners();
+  }
+
   MapLayerType get effectiveLayer {
     if (_selectedLayer == MapLayerType.calle) return MapLayerType.calle;
     if (!_isOnline && !_sitiosDescargados.values.any((v) => v)) {
@@ -78,6 +84,8 @@ class MapLayerProvider extends ChangeNotifier {
     if (!site.isConfigured) return;
     if (_descargando.contains(site.id)) return;
 
+    await _notifications.requestPermission();
+
     _descargando.add(site.id);
     notifyListeners();
 
@@ -87,9 +95,23 @@ class MapLayerProvider extends ChangeNotifier {
         onProgress: (p) {
           _progresoPorSitio[site.id] = p;
           notifyListeners();
+
+          // Limitar las actualizaciones de la notificación a ~100 en
+          // total (cada ~1% de avance), sin importar cuántos miles de
+          // tiles tenga el sitio — evita saturar el sistema de
+          // notificaciones con miles de llamadas.
+          final step = (p.total / 100).ceil().clamp(1, 1 << 30);
+          if (p.completed % step == 0 || p.completed == p.total) {
+            _notifications.showProgress(
+              siteName: site.nombre,
+              completed: p.completed,
+              total: p.total,
+            );
+          }
         },
       );
       _sitiosDescargados[site.id] = true;
+      await _notifications.showDone(site.nombre);
     } finally {
       _descargando.remove(site.id);
       notifyListeners();

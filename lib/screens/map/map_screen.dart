@@ -48,6 +48,7 @@ class _MapScreenState extends State<MapScreen> {
   double? _currentHeading;
   StreamSubscription<Position>? _positionSub;
   bool _followMe = false;
+  Timer? _layerWarmupTimer;
 
   static const _distanceCalc = Distance();
   final LatLng _initialCenter = const LatLng(10.339, -68.735);
@@ -111,6 +112,15 @@ class _MapScreenState extends State<MapScreen> {
         });
   }
 
+  void _scheduleLayerWarmup(MapLayerProvider provider) {
+    final layer = provider.selectedLayer;
+    if (provider.isLayerWarm(layer)) return;
+    _layerWarmupTimer?.cancel();
+    _layerWarmupTimer = Timer(const Duration(milliseconds: 1400), () {
+      if (mounted) provider.markLayerWarm(layer);
+    });
+  }
+
   List<Widget> _buildBaseTileLayers(MapLayerProvider mapLayerProvider) {
     final layer = mapLayerProvider.effectiveLayer;
     const userAgent = 'com.ven911.app';
@@ -128,6 +138,7 @@ class _MapScreenState extends State<MapScreen> {
           TileLayer(
             urlTemplate: MapTileUrls.esriSatelite,
             userAgentPackageName: userAgent,
+            maxNativeZoom: MapTileUrls.esriMaxZoom,
             tileProvider: _satelliteTileProvider,
           ),
         ];
@@ -136,11 +147,13 @@ class _MapScreenState extends State<MapScreen> {
           TileLayer(
             urlTemplate: MapTileUrls.esriSatelite,
             userAgentPackageName: userAgent,
+            maxNativeZoom: MapTileUrls.esriMaxZoom,
             tileProvider: _satelliteTileProvider,
           ),
           TileLayer(
             urlTemplate: MapTileUrls.esriReferenciaHibrida,
             userAgentPackageName: userAgent,
+            maxNativeZoom: MapTileUrls.esriMaxZoom,
           ),
         ];
     }
@@ -338,6 +351,7 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
+    _layerWarmupTimer?.cancel();
     _positionSub?.cancel();
     super.dispose();
   }
@@ -365,6 +379,7 @@ class _MapScreenState extends State<MapScreen> {
 
     final fibraProvider = Provider.of<FibraProvider>(context);
     final mapLayerProvider = Provider.of<MapLayerProvider>(context);
+    _scheduleLayerWarmup(mapLayerProvider);
     final filteredFibra = fibraProvider.puntos.where((p) {
       final matchesSearch =
           _searchQuery.isEmpty ||
@@ -385,6 +400,9 @@ class _MapScreenState extends State<MapScreen> {
             options: MapOptions(
               initialCenter: _initialCenter,
               initialZoom: 13.0,
+              maxZoom: mapLayerProvider.effectiveLayer == MapLayerType.calle
+                  ? MapTileUrls.calleMaxZoom.toDouble()
+                  : MapTileUrls.esriMaxZoom.toDouble(),
               onTap: (_isEditMode || _isMeasuring) ? _handleMapTap : null,
             ),
             children: [
@@ -684,6 +702,34 @@ class _MapScreenState extends State<MapScreen> {
                 ),
             ],
           ),
+          if (!mapLayerProvider.isLayerWarm(mapLayerProvider.selectedLayer))
+            const Positioned.fill(
+              child: IgnorePointer(
+                child: Center(
+                  child: Card(
+                    elevation: 4,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: 12),
+                          Text('Cargando mapa por primera vez...'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           if (_measureDistanceMeters != null)
             Positioned(
               bottom: 100,

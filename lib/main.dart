@@ -16,6 +16,7 @@ import 'screens/auth/update_password_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/connectivity_service.dart';
 import 'theme/app_theme.dart';
+import 'services/site_tile_prefetch_service.dart'; // nuevo import
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -36,7 +37,8 @@ void main() async {
 
   // NUEVO: inicializar el backend de FMTC antes de usar cualquier store.
   await FMTCObjectBoxBackend().initialise();
-
+  // NUEVO: crear el store aquí, no esperar a la primera descarga.
+  await SiteTilePrefetchService.ensureStoreCreated();
   // NUEVO: servicio de conectividad compartido por toda la app.
   final connectivityService = ConnectivityService();
   await connectivityService.init();

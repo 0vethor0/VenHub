@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
@@ -13,30 +15,25 @@ import '../models/work_site.dart';
 class SiteDownloadProgress {
   final int completed;
   final int total;
-  const SiteDownloadProgress(this.completed, this.total);
+  final int failed;
+  const SiteDownloadProgress(this.completed, this.total, {this.failed = 0});
   double get fraction => total == 0 ? 0 : completed / total;
 }
 
-/// Nombre del store de FMTC usado exclusivamente para tiles satelitales.
-/// Separado del futuro store que se use para OSM, si en algún momento
-/// se decide precachear la calle también.
 const kEsriSateliteStoreName = 'esri_satelite_store';
 
-/// Descarga (precachea) los tiles satelitales de Esri correspondientes a
-/// un [WorkSite], usando el almacén durable de FMTC (no depende del
-/// caché temporal del sistema operativo, que puede perderse bajo presión
-/// de memoria — a diferencia del caché "built-in" de flutter_map).
-///
-/// DECISIÓN DE DISEÑO: este servicio deliberadamente NO usa la API de
-/// "regiones / bulk download" de FMTC (Circle/Rectangle region +
-/// download.start...), porque esa parte de la librería ha cambiado de
-/// forma significativa entre versiones mayores. En su lugar, solo usa
-/// la superficie más estable y antigua de FMTC: crear un store y pedirle
-/// un `getTileProvider()` — el mismo mecanismo que usa cualquier
-/// TileLayer normal. Descargar un sitio, entonces, es simplemente
-/// "pedir" cada tile de su área una vez, igual que si el usuario
-/// hubiera navegado por ahí — FMTC lo guarda solo, como ya hace al
-/// navegar en vivo.
+/// Cuántas descargas de tiles corren en paralelo. Antes esto era
+/// secuencial (1 a la vez) y para un sitio de radio 5km podía tardar más
+/// de una hora sin dar ninguna señal de progreso real. 10 en paralelo
+/// baja eso a minutos y hace que el progreso avance de forma visible.
+const _kConcurrentDownloads = 10;
+
+/// Cuánto se espera como máximo por un tile individual antes de darlo
+/// por fallido y seguir con el siguiente. Sin esto, un solo tile con
+/// problemas de red podía congelar toda la descarga indefinidamente
+/// (eso era la causa más probable del "proceso fantasma").
+const _kTileTimeout = Duration(seconds: 12);
+
 class SiteTilePrefetchService {
   static const _prefsKeyPrefix = 'site_downloaded_';
 
@@ -50,12 +47,9 @@ class SiteTilePrefetchService {
     const store = FMTCStore(kEsriSateliteStoreName);
     try {
       await store.manage.create();
-    } catch (_) {
-      // La forma exacta de detectar "el store ya existe" ha cambiado
-      // entre versiones de FMTC; atrapar cualquier excepción aquí es
-      // deliberadamente permisivo. Si esto oculta un error real de
-      // inicialización, los tiles simplemente no se guardarán y el
-      // fallo se notará al probar la descarga de un sitio.
+      debugPrint('[SiteDownload] store "$kEsriSateliteStoreName" listo.');
+    } catch (e) {
+      debugPrint('[SiteDownload] store ya existía o falló create(): $e');
     }
   }
 
@@ -106,9 +100,9 @@ class SiteTilePrefetchService {
     return (x, y);
   }
 
-  /// Descarga todos los tiles del sitio. No aborta si un tile individual
-  /// falla (por ejemplo, un corte momentáneo de señal): sigue con el
-  /// resto y reporta el progreso real al final.
+  /// Descarga todos los tiles del sitio con [_kConcurrentDownloads]
+  /// descargas simultáneas. Un tile fallido o colgado (timeout) no
+  /// bloquea el resto — se cuenta como fallo y se sigue.
   Future<void> downloadSite(
     WorkSite site, {
     required void Function(SiteDownloadProgress progress) onProgress,
@@ -116,35 +110,71 @@ class SiteTilePrefetchService {
     await ensureStoreCreated();
     final tiles = _tilesForSite(site);
     final total = tiles.length;
-    var done = 0;
 
+    debugPrint(
+      '[SiteDownload] ${site.nombre}: iniciando, $total tiles '
+      '(zoom ${site.minZoom}-${site.maxZoom}, radio ${site.radiusKm}km)',
+    );
+
+    if (total == 0) {
+      onProgress(const SiteDownloadProgress(0, 0));
+      debugPrint(
+        '[SiteDownload] ${site.nombre}: sin ubicación configurada, '
+        'se aborta.',
+      );
+      return;
+    }
+
+    var done = 0;
+    var failed = 0;
     onProgress(SiteDownloadProgress(0, total));
 
-    // TileLayer "de configuración": no se renderiza en pantalla, solo
-    // transporta el urlTemplate/atribución que necesita provideTile().
     final layerOptions = TileLayer(urlTemplate: MapTileUrls.esriSatelite);
+    final queue = List<_TileXYZ>.from(tiles);
 
-    for (final t in tiles) {
-      try {
-        await _fetchOne(layerOptions, t);
-      } catch (_) {
-        // Tile individual fallido: se ignora y se continúa.
+    Future<void> worker(int workerId) async {
+      while (queue.isNotEmpty) {
+        final t = queue.removeLast();
+        try {
+          await _fetchOne(layerOptions, t).timeout(_kTileTimeout);
+        } catch (e) {
+          failed++;
+          debugPrint('[SiteDownload] tile ${t.z}/${t.x}/${t.y} falló: $e');
+        }
+        done++;
+        onProgress(SiteDownloadProgress(done, total, failed: failed));
       }
-      done++;
-      onProgress(SiteDownloadProgress(done, total));
     }
+
+    await Future.wait(List.generate(_kConcurrentDownloads, (i) => worker(i)));
+
+    debugPrint(
+      '[SiteDownload] ${site.nombre}: terminado. '
+      '$done/$total procesados, $failed fallidos.',
+    );
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('$_prefsKeyPrefix${site.id}', true);
   }
 
-  Future<void> _fetchOne(TileLayer options, _TileXYZ t) async {
+  Future<void> _fetchOne(TileLayer options, _TileXYZ t) {
     final coords = TileCoordinates(t.x, t.y, t.z);
-    try {
-      await _tileProvider.provideTile(coords: coords, options: options);
-    } catch (_) {
-      // Tile individual fallido: se ignora y se continúa.
-    }
+    final imageProvider = _tileProvider.getImage(coords, options);
+    final completer = Completer<void>();
+    final stream = imageProvider.resolve(const ImageConfiguration());
+    late ImageStreamListener listener;
+    listener = ImageStreamListener(
+      (ImageInfo info, bool _) {
+        stream.removeListener(listener);
+        if (!completer.isCompleted) completer.complete();
+      },
+      onError: (Object error, StackTrace? stack) {
+        stream.removeListener(listener);
+        if (!completer.isCompleted) completer.completeError(error);
+      },
+    );
+    stream.addListener(listener);
+    return completer.future;
   }
 
   Future<bool> isSiteDownloaded(String siteId) async {

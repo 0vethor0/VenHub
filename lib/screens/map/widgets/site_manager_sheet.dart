@@ -83,10 +83,25 @@ class _SiteTile extends StatelessWidget {
               style: TextStyle(color: AppTheme.dangerRed, fontSize: 12),
             )
           : descargando
-          ? LinearProgressIndicator(
-              value: (progreso == null || progreso.total == 0)
-                  ? null
-                  : progreso.fraction,
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                LinearProgressIndicator(
+                  value: (progreso == null || progreso.total == 0)
+                      ? null
+                      : progreso.fraction,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  progreso == null
+                      ? 'Iniciando descarga...'
+                      : '${(progreso.fraction * 100).toStringAsFixed(0)}% '
+                            '(${progreso.completed}/${progreso.total} tiles'
+                            '${progreso.failed > 0 ? ", ${progreso.failed} fallidos" : ""})',
+                  style: const TextStyle(fontSize: 11, color: Colors.black54),
+                ),
+              ],
             )
           : Text(
               descargado ? 'Disponible sin conexión' : 'No descargado',
