@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.1](https://github.com/0vethor0/VenHub/compare/v1.12.0...v1.12.1) (2026-08-17)
+
+
+### Bug Fixes
+
+* **mapa:** aplicar correcciones de zoom, calentamiento de capas y habilitar desugaring en Android ([2ad613f](https://github.com/0vethor0/VenHub/commit/2ad613f91fdede2715a490fbff04a15aa63a71b5))
+
 ## [1.12.0](https://github.com/0vethor0/VenHub/compare/v1.11.0...v1.12.0) (2026-08-16)
 
 
